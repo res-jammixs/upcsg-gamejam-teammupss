@@ -4,6 +4,10 @@ function Game:init()
     self.player = require('src.entities.Player'):new()
 end
 
+function Game:enter()
+    self:init()
+end
+
 function Game:update(dt)
     self.player:update(dt)
 end
