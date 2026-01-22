@@ -1,0 +1,38 @@
+# LÖVE2D
+*.love
+
+# Build directories
+build/
+dist/
+release/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Windows
+*.lnk
+*~
+
+# macOS
+.AppleDouble
+.LSOverride
+
+# Linux
+.directory
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
