@@ -64,24 +64,25 @@ function MainMenu:draw()
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(background, 0, 0, 0, scaleX, scaleY)
 
-    love.graphics.setFont(fontTitle)
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.print("FEATHERLESS", 80, 90)
-
     love.graphics.setFont(fontMenu)
-    local startY = 250
+    
+    -- Calculate button positions for centering
     local spacing = 60
-    local textX = 120
-    local cursorX = 90
-
+    local totalHeight = (#buttons - 1) * spacing
+    -- Center buttons in the middle/lower half of the screen
+    local startY = wh * 0.50
+    
     for i, button in ipairs(buttons) do
         local y = startY + (i - 1) * spacing
+        
+        -- Calculate horizontal center position
+        local buttonWidth = fontMenu:getWidth(button.text)
+        local textX = (ww - buttonWidth) / 2
 
         if i == selected then
-            love.graphics.setColor(1, 1, 1)
-            love.graphics.print(">", cursorX, y)
+            love.graphics.setColor(225/255, 223/255, 174/255)
         else
-            love.graphics.setColor(0.75, 0.75, 0.75)
+            love.graphics.setColor(225/255, 223/255, 174/255, 0.5)
         end
 
         love.graphics.print(button.text, textX, y)
