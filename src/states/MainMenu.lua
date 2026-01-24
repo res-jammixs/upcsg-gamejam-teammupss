@@ -146,7 +146,7 @@ function MainMenu:draw()
     
     local spacing = 60
     local totalHeight = (#buttons - 1) * spacing
-    local startY = wh * 0.50
+    local startY = wh * 0.40
     
     for i, button in ipairs(buttons) do
         local y = startY + (i - 1) * spacing
