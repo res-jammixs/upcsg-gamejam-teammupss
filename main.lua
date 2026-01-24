@@ -27,6 +27,19 @@ function love.keypressed(key)
     end
 end
 
+-- ADD THESE TWO FUNCTIONS:
+function love.mousepressed(x, y, button)
+    if currentState.mousepressed then
+        currentState:mousepressed(x, y, button)
+    end
+end
+
+function love.mousereleased(x, y, button)
+    if currentState.mousereleased then
+        currentState:mousereleased(x, y, button)
+    end
+end
+
 -- Function to switch states
 function switchState(newState)
     currentState = newState
