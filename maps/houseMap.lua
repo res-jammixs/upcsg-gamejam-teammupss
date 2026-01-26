@@ -886,7 +886,7 @@ return {
       id = 14,
       name = "Portals",
       class = "",
-      visible = true,
+      visible = false,
       opacity = 1,
       offsetx = 0,
       offsety = 0,

@@ -400,7 +400,7 @@
   <object id="25" x="563" y="417" width="9.5" height="5.75"/>
   <object id="26" x="529.25" y="302" width="29.25" height="18"/>
  </objectgroup>
- <objectgroup id="14" name="Portals">
+ <objectgroup id="14" name="Portals" visible="0">
   <object id="27" x="531" y="306.75" width="10.25" height="12.5">
    <properties>
     <property name="spawnX" type="float" value="558"/>

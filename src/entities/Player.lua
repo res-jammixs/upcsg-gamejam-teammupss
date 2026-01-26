@@ -32,22 +32,20 @@ function Player:update(dt)
     local vx = 0; 
     local vy = 0; 
     
+    -- Priority-based movement: vertical takes priority over horizontal
     if love.keyboard.isDown('w') or love.keyboard.isDown('up') then
         vy = self.speed * dt * -1
         self.currentAnim = 'up'
         isMoving = true
-    end
-    if love.keyboard.isDown('s') or love.keyboard.isDown('down') then
+    elseif love.keyboard.isDown('s') or love.keyboard.isDown('down') then
         vy = self.speed * dt 
         self.currentAnim = 'down'
         isMoving = true
-    end
-    if love.keyboard.isDown('a') or love.keyboard.isDown('left') then
+    elseif love.keyboard.isDown('a') or love.keyboard.isDown('left') then
         vx = self.speed * dt * -1
         self.currentAnim = 'left'
         isMoving = true
-    end
-    if love.keyboard.isDown('d') or love.keyboard.isDown('right') then
+    elseif love.keyboard.isDown('d') or love.keyboard.isDown('right') then
         vx = self.speed * dt 
         self.currentAnim = 'right'
         isMoving = true
