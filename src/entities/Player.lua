@@ -20,7 +20,7 @@ function Player:new()
         grid = grid,
         animations = animations,
         currentAnim = 'down',  
-        anim8 = anim8  
+        anim8 = anim8, 
     }
     
     return setmetatable(self, { __index = Player })
@@ -28,28 +28,33 @@ end
 
 function Player:update(dt)
     local isMoving = false
+
+    local vx = 0; 
+    local vy = 0; 
     
     if love.keyboard.isDown('w') or love.keyboard.isDown('up') then
-        self.y = self.y - self.speed * dt
+        vy = self.speed * dt * -1
         self.currentAnim = 'up'
         isMoving = true
     end
     if love.keyboard.isDown('s') or love.keyboard.isDown('down') then
-        self.y = self.y + self.speed * dt
+        vy = self.speed * dt 
         self.currentAnim = 'down'
         isMoving = true
     end
     if love.keyboard.isDown('a') or love.keyboard.isDown('left') then
-        self.x = self.x - self.speed * dt
+        vx = self.speed * dt * -1
         self.currentAnim = 'left'
         isMoving = true
     end
     if love.keyboard.isDown('d') or love.keyboard.isDown('right') then
-        self.x = self.x + self.speed * dt
+        vx = self.speed * dt 
         self.currentAnim = 'right'
         isMoving = true
     end
     
+    self.collider:setLinearVelocity(vx * 60, vy * 60)
+
     if isMoving then
         self.animations[self.currentAnim]:update(dt)
     else
@@ -58,7 +63,7 @@ function Player:update(dt)
 end
 
 function Player:draw()
-    self.animations[self.currentAnim]:draw(self.sprite, self.x, self.y, nil, 10)
+    self.animations[self.currentAnim]:draw(self.sprite, self.x, self.y, nil, 3)
 end
 
 return Player

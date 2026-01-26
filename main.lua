@@ -5,7 +5,7 @@ local currentState
 
 function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest")
-    
+
     -- Start with the main menu
     currentState = MainMenu
     currentState:enter()
