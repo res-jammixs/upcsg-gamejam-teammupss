@@ -60,14 +60,16 @@ function MapManager:loadWalls()
             local wallW = obj.width * scale
             local wallH = obj.height * scale
 
-            local wall = self.world:newRectangleCollider(wallX, wallY, wallW, wallH)
-            wall:setType('static')
-
-            table.insert(self.walls, wall)
+            -- Skip walls with invalid dimensions (too small or zero)
+            if wallW > 0.1 and wallH > 0.1 then
+                local wall = self.world:newRectangleCollider(wallX, wallY, wallW, wallH)
+                wall:setType('static')
+                table.insert(self.walls, wall)
+            end
         end
     end
 end
-
+  
 function MapManager:loadPortals()
     self.portals = {}
     
