@@ -14,6 +14,7 @@ local fontTitle
 local fontMenu
 local bgVideo
 local buttonPressed = false
+local menuMusic
 
 function MainMenu:enter()
     bgVideo = love.graphics.newVideo("assets/graphics/ui/menu.ogv")
@@ -21,11 +22,25 @@ function MainMenu:enter()
     fontTitle = love.graphics.newFont("assets/fonts/VT323-Regular.ttf", 90)
     fontMenu = love.graphics.newFont("assets/fonts/VT323-Regular.ttf", 52)
     
+    -- Load and play main menu music
+    menuMusic = love.audio.newSource("assets/sounds/music/main-menu.mp3", "stream")
+    menuMusic:setLooping(true)
+    menuMusic:setVolume(0.5)
+    menuMusic:play()
+    
     buttons = {}
     selected = 1
     buttonPressed = false
     
     table.insert(buttons, newButton("START", function()
+        -- Stop menu music and play game start sound
+        if menuMusic then
+            menuMusic:stop()
+        end
+        
+        local gameStartSound = love.audio.newSource("assets/sounds/music/game-start.mp3", "static")
+        gameStartSound:play()
+        
         local transition = getTransition()
         transition:fadeIn(0.5, function()
             switchState(Game)
@@ -44,6 +59,10 @@ end
 function MainMenu:exit()
     if bgVideo then
         bgVideo:release()
+    end
+    if menuMusic then
+        menuMusic:stop()
+        menuMusic:release()
     end
 end
 
