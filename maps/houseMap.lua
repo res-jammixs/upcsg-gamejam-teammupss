@@ -10,7 +10,7 @@ return {
   tilewidth = 16,
   tileheight = 16,
   nextlayerid = 15,
-  nextobjectid = 30,
+  nextobjectid = 31,
   properties = {},
   tilesets = {
     {
@@ -926,6 +926,21 @@ return {
             ["spawnX"] = 558,
             ["spawnY"] = 430,
             ["targetMap"] = "maps/parentroomMap.lua"
+          }
+        },
+        {
+          id = 30,
+          name = "",
+          type = "",
+          shape = "rectangle",
+          x = 513.5,
+          y = 446.5,
+          width = 12.5,
+          height = 16.75,
+          rotation = 0,
+          visible = true,
+          properties = {
+            ["targetMap"] = "maps/frontyardMap.lua"
           }
         }
       }
