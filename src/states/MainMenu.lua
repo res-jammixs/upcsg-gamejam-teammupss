@@ -15,6 +15,7 @@ local fontMenu
 local bgVideo
 local buttonPressed = false
 local menuMusic
+local isTransitioning = false
 
 function MainMenu:enter()
     bgVideo = love.graphics.newVideo("assets/graphics/ui/menu.ogv")
@@ -31,24 +32,22 @@ function MainMenu:enter()
     buttons = {}
     selected = 1
     buttonPressed = false
+    isTransitioning = false
     
     table.insert(buttons, newButton("START", function()
-        -- Stop menu music and play game start sound
+        -- Prevent multiple clicks during transition
+        if isTransitioning then return end
+        isTransitioning = true
+        
+        -- Stop menu music
         if menuMusic then
             menuMusic:stop()
         end
-        
-        local gameStartSound = love.audio.newSource("assets/sounds/music/game-start.mp3", "static")
-        gameStartSound:play()
         
         local transition = getTransition()
         transition:fadeIn(0.5, function()
             switchState(Game)
         end)
-    end))
-    
-    table.insert(buttons, newButton("CONTINUE", function()
-        print("Continue Game")
     end))
     
     table.insert(buttons, newButton("EXIT", function()
@@ -72,11 +71,15 @@ function MainMenu:update(dt)
         bgVideo:play()
     end
     
+    -- Prevent menu navigation during transition
+    if isTransitioning then return end
+    
+    -- Mouse hover detection
     local mx, my = love.mouse.getPosition()
     local ww = love.graphics.getWidth()
     local wh = love.graphics.getHeight()
     local spacing = 60
-    local startY = wh * 0.50
+    local startY = wh * 0.40
     
     for i, buttonObj in ipairs(buttons) do
         local buttonY = startY + (i - 1) * spacing
@@ -93,10 +96,12 @@ function MainMenu:update(dt)
 end
 
 function MainMenu:keypressed(key)
-    if key == "down" then
+    if isTransitioning then return end
+    
+    if key == "down" or key == "s" then
         selected = selected + 1
         if selected > #buttons then selected = 1 end
-    elseif key == "up" then
+    elseif key == "up" or key == "w" then
         selected = selected - 1
         if selected < 1 then selected = #buttons end
     elseif key == "return" or key == "space" then
@@ -104,12 +109,15 @@ function MainMenu:keypressed(key)
     end
 end
 
+-- Mouse click detection
 function MainMenu:mousepressed(x, y, button)
+    if isTransitioning then return end
+    
     if button == 1 then  
         local ww = love.graphics.getWidth()
         local wh = love.graphics.getHeight()
         local spacing = 60
-        local startY = wh * 0.50
+        local startY = wh * 0.40
         
         for i, buttonObj in ipairs(buttons) do
             local buttonY = startY + (i - 1) * spacing
@@ -128,11 +136,13 @@ function MainMenu:mousepressed(x, y, button)
 end
 
 function MainMenu:mousereleased(x, y, button)
+    if isTransitioning then return end
+    
     if button == 1 and buttonPressed then
         local ww = love.graphics.getWidth()
         local wh = love.graphics.getHeight()
         local spacing = 60
-        local startY = wh * 0.50
+        local startY = wh * 0.40
         
         for i, buttonObj in ipairs(buttons) do
             local buttonY = startY + (i - 1) * spacing
@@ -176,6 +186,7 @@ function MainMenu:draw()
         local textX = (ww - buttonWidth) / 2
         
         if i == selected then
+            -- Mouse press visual feedback
             if buttonPressed and love.mouse.isDown(1) then
                 love.graphics.setColor(225/255, 223/255, 174/255, 0.7)  
             else
