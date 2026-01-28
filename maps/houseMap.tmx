@@ -12,6 +12,9 @@
  <tileset firstgid="90" name="grass" tilewidth="16" tileheight="16" tilecount="77" columns="11">
   <image source="tilesets/grass.png" width="176" height="112"/>
  </tileset>
+ <tileset firstgid="167" name="Simple_Milk_and_grass_item" tilewidth="16" tileheight="16" tilecount="4" columns="4">
+  <image source="tilesets/Simple_Milk_and_grass_item.png" width="64" height="16"/>
+ </tileset>
  <layer id="2" name="Background" width="64" height="48">
   <data encoding="csv">
 49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,
