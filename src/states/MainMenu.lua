@@ -26,7 +26,7 @@ function MainMenu:enter()
     -- Load and play main menu music
     menuMusic = love.audio.newSource("assets/sounds/music/main-menu.mp3", "stream")
     menuMusic:setLooping(true)
-    menuMusic:setVolume(0.5)
+    menuMusic:setVolume(0.3)
     menuMusic:play()
     
     buttons = {}
