@@ -32,7 +32,7 @@ function Game:init()
     
     gameMusic = love.audio.newSource("assets/sounds/music/game-start.mp3", "stream")
     gameMusic:setLooping(true)
-    gameMusic:setVolume(0.4)
+    gameMusic:setVolume(0.1)
     gameMusic:play()
 end
 
