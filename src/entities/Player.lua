@@ -12,6 +12,15 @@ function Player:new()
         up = anim8.newAnimation(grid('1-4', 4), 0.2)      
     }
     
+    -- Load walking and sprint sounds
+    local walkingSound = love.audio.newSource('assets/sounds/sfx/walking-sound.mp3', 'stream')
+    walkingSound:setLooping(true)
+    walkingSound:setVolume(0.1)
+    
+    local sprintSound = love.audio.newSource('assets/sounds/sfx/sprint-sound.mp3', 'stream')
+    sprintSound:setLooping(true)
+    sprintSound:setVolume(0.1)
+    
     local self = {
         x = 482,
         y = 354,
@@ -27,6 +36,9 @@ function Player:new()
         afterimages = {},
         afterimageTimer = 0,
         afterimageInterval = 0.05, -- Create afterimage every 0.05 seconds
+        walkingSound = walkingSound,
+        sprintSound = sprintSound,
+        isWalking = false,
     }
     
     return setmetatable(self, { __index = Player })
@@ -75,6 +87,26 @@ function Player:update(dt)
     if isMoving then
         self.animations[self.currentAnim]:update(dt)
         
+        -- Handle movement sounds (walking vs sprinting)
+        if not self.isWalking then
+            -- Start playing the appropriate sound
+            if self.isSprinting then
+                self.sprintSound:play()
+            else
+                self.walkingSound:play()
+            end
+            self.isWalking = true
+        else
+            -- Switch between walking and sprint sounds
+            if self.isSprinting and not self.sprintSound:isPlaying() then
+                self.walkingSound:stop()
+                self.sprintSound:play()
+            elseif not self.isSprinting and not self.walkingSound:isPlaying() then
+                self.sprintSound:stop()
+                self.walkingSound:play()
+            end
+        end
+        
         -- Create afterimages when sprinting
         if self.isSprinting then
             self.afterimageTimer = self.afterimageTimer + dt
@@ -85,6 +117,13 @@ function Player:update(dt)
         end
     else
         self.animations[self.currentAnim]:gotoFrame(2)
+        
+        -- Stop all movement sounds when not moving
+        if self.isWalking then
+            self.walkingSound:stop()
+            self.sprintSound:stop()
+            self.isWalking = false
+        end
     end
     
     -- Update afterimages (fade out over time)

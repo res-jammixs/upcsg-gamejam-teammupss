@@ -3,6 +3,56 @@ local DialogueManager = require('src.util.DialogueManager')
 
 Game = {}
 local gameMusic = nil -- Store music reference globally
+local houseMusic = nil -- Store house music reference
+local currentMusicTrack = nil -- Track which music is currently playing
+
+function Game:switchMusic(mapName)
+    -- Clean up the map name (remove path and extension if present)
+    local cleanMapName = mapName
+    if mapName:find('/') then
+        cleanMapName = mapName:gsub('.*/', '')
+    end
+    if cleanMapName:find('%.lua$') then
+        cleanMapName = cleanMapName:gsub('%.lua$', '')
+    end
+    
+    -- Indoor maps: all house interior rooms
+    local indoorMaps = {"duckyroomMap", "houseMap", "parentroomMap"}
+    
+    -- Outdoor maps: yard and intersection
+    local outdoorMaps = {"frontyardMap", "intersectionMap"}
+    
+    local isIndoor = false
+    
+    -- Check if current map is an indoor map
+    for _, map in ipairs(indoorMaps) do
+        if cleanMapName == map then
+            isIndoor = true
+            break
+        end
+    end
+    
+    -- Switch music if needed
+    if isIndoor and currentMusicTrack ~= "house" then
+        if gameMusic then gameMusic:stop() end
+        if not houseMusic then
+            houseMusic = love.audio.newSource("assets/sounds/music/house-music.mp3", "stream")
+            houseMusic:setLooping(true)
+            houseMusic:setVolume(0.05)
+        end
+        houseMusic:play()
+        currentMusicTrack = "house"
+    elseif not isIndoor and currentMusicTrack ~= "game" then
+        if houseMusic then houseMusic:stop() end
+        if not gameMusic then
+            gameMusic = love.audio.newSource("assets/sounds/music/game-start.mp3", "stream")
+            gameMusic:setLooping(true)
+            gameMusic:setVolume(0.05)
+        end
+        gameMusic:play()
+        currentMusicTrack = "game"
+    end
+end
 
 function Game:init()
     self.player = require('src.entities.Player'):new()
@@ -24,16 +74,21 @@ function Game:init()
     -- Interaction cooldown
     self.isTransitioning = false
     
-    -- Stop any existing game music and start fresh
+    -- Stop any existing music and initialize music system
     if gameMusic then
         gameMusic:stop()
         gameMusic:release()
+        gameMusic = nil
+    end
+    if houseMusic then
+        houseMusic:stop()
+        houseMusic:release()
+        houseMusic = nil
     end
     
-    gameMusic = love.audio.newSource("assets/sounds/music/game-start.mp3", "stream")
-    gameMusic:setLooping(true)
-    gameMusic:setVolume(0.4)
-    gameMusic:play()
+    -- Start with appropriate music for starting map (houseMap is indoor)
+    currentMusicTrack = nil
+    self:switchMusic(self.mapManager.currentMap)
 end
 
 function Game:enter()
@@ -92,9 +147,12 @@ end
 function Game:keypressed(key)
     -- Handle ESC to return to main menu
     if key == 'escape' then
-        -- Stop game music
+        -- Stop all game music
         if gameMusic then
             gameMusic:stop()
+        end
+        if houseMusic then
+            houseMusic:stop()
         end
         
         local MainMenu = require('src.states.MainMenu')
@@ -154,6 +212,9 @@ function Game:interact()
         transition:fadeIn(0.5, function()
             -- Load the target map while screen is black
             self.mapManager:loadMap(portal.targetMap)
+            
+            -- Switch music based on new map
+            self:switchMusic(portal.targetMap)
             
             -- Recreate player collider in the new world
             self.mapManager:recreatePlayerCollider(self.player)
