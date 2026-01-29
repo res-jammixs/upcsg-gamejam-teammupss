@@ -22,7 +22,7 @@ return {
       spacing = 0,
       margin = 0,
       columns = 11,
-      image = "../../Documents/featherless/upcsg-gamejam-teammupss/maps/tilesets/hills-ash.png",
+      image = "tilesets/hills-ash.png",
       imagewidth = 176,
       imageheight = 144,
       objectalignment = "unspecified",
@@ -123,7 +123,7 @@ return {
       spacing = 0,
       margin = 0,
       columns = 4,
-      image = "../../Documents/featherless/upcsg-gamejam-teammupss/maps/tilesets/lava.png",
+      image = "tilesets/lava.png",
       imagewidth = 64,
       imageheight = 16,
       objectalignment = "unspecified",
@@ -152,7 +152,7 @@ return {
       spacing = 0,
       margin = 0,
       columns = 11,
-      image = "../../Documents/featherless/upcsg-gamejam-teammupss/maps/tilesets/dirt.png",
+      image = "tilesets/dirt.png",
       imagewidth = 176,
       imageheight = 112,
       objectalignment = "unspecified",
@@ -181,7 +181,7 @@ return {
       spacing = 0,
       margin = 0,
       columns = 11,
-      image = "../../Documents/featherless/upcsg-gamejam-teammupss/maps/tilesets/grass-ash.png",
+      image = "tilesets/grass-ash.png",
       imagewidth = 176,
       imageheight = 112,
       objectalignment = "unspecified",
@@ -210,7 +210,7 @@ return {
       spacing = 0,
       margin = 0,
       columns = 9,
-      image = "biome-ash.png",
+      image = "tilesets/biome-ash.png",
       imagewidth = 144,
       imageheight = 80,
       objectalignment = "unspecified",
@@ -7762,11 +7762,7 @@ return {
       offsety = 0,
       parallaxx = 1,
       parallaxy = 1,
-      properties = {
-        ["maps/intersectionMap.lua"] = "",
-        ["spawnX"] = 0,
-        ["spawnY"] = 0
-      },
+      properties = {},
       objects = {
         {
           id = 1203,
@@ -7780,9 +7776,9 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["maps/intersectionMap.lua"] = "",
-            ["spawnX"] = 0,
-            ["spawnY"] = 0
+            ["spawnX"] = 3000,
+            ["spawnY"] = 1000,
+            ["targetMap"] = "maps/intersectionMap.lua"
           }
         }
       }

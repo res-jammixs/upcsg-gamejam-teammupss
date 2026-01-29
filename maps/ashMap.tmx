@@ -4,7 +4,7 @@
   <export target="area-ash.lua" format="lua"/>
  </editorsettings>
  <tileset firstgid="1" name="hills-ash" tilewidth="16" tileheight="16" tilecount="99" columns="11">
-  <image source="../../Documents/featherless/upcsg-gamejam-teammupss/maps/tilesets/hills-ash.png" width="176" height="144"/>
+  <image source="tilesets/hills-ash.png" width="176" height="144"/>
   <wangsets>
    <wangset name="Hills" type="mixed" tile="-1">
     <wangcolor name="" color="#ff0000" tile="-1" probability="1"/>
@@ -25,16 +25,16 @@
   </wangsets>
  </tileset>
  <tileset firstgid="100" name="lava" tilewidth="16" tileheight="16" tilecount="4" columns="4">
-  <image source="../../Documents/featherless/upcsg-gamejam-teammupss/maps/tilesets/lava.png" width="64" height="16"/>
+  <image source="tilesets/lava.png" width="64" height="16"/>
  </tileset>
  <tileset firstgid="104" name="dirt" tilewidth="16" tileheight="16" tilecount="77" columns="11">
-  <image source="../../Documents/featherless/upcsg-gamejam-teammupss/maps/tilesets/dirt.png" width="176" height="112"/>
+  <image source="tilesets/dirt.png" width="176" height="112"/>
  </tileset>
  <tileset firstgid="181" name="grass-ash" tilewidth="16" tileheight="16" tilecount="77" columns="11">
-  <image source="../../Documents/featherless/upcsg-gamejam-teammupss/maps/tilesets/grass-ash.png" width="176" height="112"/>
+  <image source="tilesets/grass-ash.png" width="176" height="112"/>
  </tileset>
  <tileset firstgid="258" name="biome-ash" tilewidth="16" tileheight="16" tilecount="45" columns="9">
-  <image source="biome-ash.png" width="144" height="80"/>
+  <image source="tilesets/biome-ash.png" width="144" height="80"/>
  </tileset>
  <layer id="1" name="Background" width="64" height="48">
   <data encoding="csv">
@@ -1088,16 +1088,11 @@
   <object id="1210" x="-3" y="-0.5" width="6.5" height="363.5"/>
  </objectgroup>
  <objectgroup id="20" name="Portals">
-  <properties>
-   <property name="maps/intersectionMap.lua" value=""/>
-   <property name="spawnX" type="float" value="0"/>
-   <property name="spawnY" type="float" value="0"/>
-  </properties>
   <object id="1203" x="0.25" y="362.5" width="31.75" height="74.75">
    <properties>
-    <property name="maps/intersectionMap.lua" value=""/>
-    <property name="spawnX" type="float" value="0"/>
-    <property name="spawnY" type="float" value="0"/>
+    <property name="spawnX" type="float" value="3000"/>
+    <property name="spawnY" type="float" value="1000"/>
+    <property name="targetMap" value="maps/intersectionMap.lua"/>
    </properties>
   </object>
  </objectgroup>
