@@ -17,7 +17,7 @@ function Game:switchMusic(mapName)
     end
     
     -- Indoor maps: all house interior rooms
-    local indoorMaps = {"duckyroomMap", "houseMap", "parentroomMap"}
+    local indoorMaps = {"duckyroomMap", "houseMap", "parentroomMap", "zoomedDuckroomMap", "zoomedHouseMap"}
     
     -- Outdoor maps: yard and intersection
     local outdoorMaps = {"frontyardMap", "intersectionMap"}
