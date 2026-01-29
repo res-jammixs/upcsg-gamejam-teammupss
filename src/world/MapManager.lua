@@ -1,7 +1,10 @@
 local MapManager = {}
 
+camera = require 'lib/camera'
 local sti = require 'lib/sti'
 local wf = require 'lib/windfield'
+
+cam = camera()
 
 function MapManager:new()
     local self = {
@@ -9,7 +12,20 @@ function MapManager:new()
         currentMapObject = nil,
         world = nil,
         portals = {},
-        walls = {}
+        walls = {},
+        -- Classify maps as indoor or outdoor
+        indoorMaps = {
+            "zoomedHouseMap",
+            "houseMap",
+            "zoomedDuckroomMap",
+            "duckyroomMap",
+            "parentroomMap"
+        },
+        outdoorMaps = {
+            "frontyardMap",
+            "intersectionMap",
+            "ashMap"
+        }
     }
     return setmetatable(self, { __index = MapManager })
 end
@@ -50,7 +66,8 @@ function MapManager:loadWalls()
     self.walls = {}
     
     if self.currentMapObject.layers and self.currentMapObject.layers["Walls"] and self.currentMapObject.layers["Walls"].objects then
-        local scale = 3
+        -- Use scale 5 for outdoor maps, 3 for indoor maps
+        local scale = self:isOutdoorMap() and 3 or 3
        
         for i, obj in pairs(self.currentMapObject.layers["Walls"].objects) do
             local wallX = (obj.x * scale) 
@@ -72,7 +89,8 @@ function MapManager:loadPortals()
     self.portals = {}
     
     if self.currentMapObject.layers and self.currentMapObject.layers["Portals"] and self.currentMapObject.layers["Portals"].objects then
-        local scale = 3
+        -- Use scale 5 for outdoor maps, 3 for indoor maps
+        local scale = self:isOutdoorMap() and 3 or 3
         
         
         for i, obj in pairs(self.currentMapObject.layers["Portals"].objects) do
@@ -140,9 +158,36 @@ function MapManager:update(dt)
     end
 end
 
-function MapManager:draw()
+function MapManager:isOutdoorMap()
+    for _, mapName in ipairs(self.outdoorMaps) do
+        if self.currentMap == mapName then
+            return true
+        end
+    end
+    return false
+end
+
+function MapManager:draw()  
     if self.currentMapObject then
-        self.currentMapObject:draw(0,0, 3, 3)
+        if self:isOutdoorMap() then
+            -- Outdoor maps: draw each layer separately for camera control with 5x zoom
+            -- Draw layers in order (skip Portals and Walls as they're object layers)
+            local layerOrder = {"Background", "Road01", "Road", "Crops", "Bush", "Bush01", "WaterEdge", "HouseWalls", "House01", "Roof", "Tree01", "Signs", "Roof01", "Roof02", "Roof03", "HIlls01", "Hills02", "Biome02", "Biome01"}
+            
+            love.graphics.push()
+            love.graphics.scale(3, 3)
+            
+            for _, layerName in ipairs(layerOrder) do
+                if self.currentMapObject.layers[layerName] then
+                    self.currentMapObject:drawLayer(self.currentMapObject.layers[layerName])
+                end
+            end
+            
+            love.graphics.pop()
+        else
+            -- Indoor maps: draw normally with fixed offset
+            self.currentMapObject:draw(0, 0, 3, 3)
+        end
     end
 end
 

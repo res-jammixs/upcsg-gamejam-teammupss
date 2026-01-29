@@ -166,7 +166,7 @@ return {
           properties = {
             ["spawnX"] = 547,
             ["spawnY"] = 320,
-            ["targetMap"] = "maps/houseMap.lua"
+            ["targetMap"] = "maps/zoomedHouseMap.lua"
           }
         }
       }

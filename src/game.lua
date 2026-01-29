@@ -119,15 +119,56 @@ function Game:update(dt)
     
     self.player.x = self.player.collider:getX() - 19
     self.player.y = self.player.collider:getY() - 35
+    
+    -- Camera follows player in outdoor maps
+    if self.mapManager:isOutdoorMap() then
+        cam:lookAt(self.player.x, self.player.y)
+
+        local w = love.graphics.getWidth()
+        local h = love.graphics.getHeight()
+        
+        -- Calculate scaled map dimensions (outdoor maps use scale 3)
+        local scale = 3
+        local mapW = self.mapManager.currentMapObject.width * self.mapManager.currentMapObject.tilewidth * scale
+        local mapH = self.mapManager.currentMapObject.height * self.mapManager.currentMapObject.tileheight * scale
+
+        if cam.x < w / 2 then
+            cam.x = w / 2
+        end
+        if cam.y < h / 2 then
+            cam.y = h / 2
+        end
+
+        if cam.x > mapW - w / 2 then
+            cam.x = mapW - w / 2
+        end
+        if cam.y > mapH - h / 2 then
+            cam.y = mapH - h / 2
+        end
+    end
 end
 
 function Game:draw()
-    self.mapManager:draw()
-
-    love.graphics.push()
-    love.graphics.scale(1, 1)
-    self.player:draw()
-    love.graphics.pop()
+    -- Handle camera for outdoor maps
+    if self.mapManager:isOutdoorMap() then
+        cam:attach()
+        self.mapManager:draw()
+        
+        love.graphics.push()
+        love.graphics.scale(1, 1)
+        self.player:draw()
+        love.graphics.pop()
+        
+        cam:detach()
+    else
+        -- Indoor maps don't use camera
+        self.mapManager:draw()
+        
+        love.graphics.push()
+        love.graphics.scale(1, 1)
+        self.player:draw()
+        love.graphics.pop()
+    end
     
     -- Show interaction prompt when near a portal (only if dialogue is not active)
     if not self.dialogueManager:isActive() then

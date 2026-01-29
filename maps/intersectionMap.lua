@@ -666,7 +666,7 @@ return {
       width = 64,
       height = 48,
       id = 4,
-      name = "Walls",
+      name = "HouseWalls",
       class = "",
       visible = true,
       opacity = 1,
