@@ -519,6 +519,8 @@
   <object id="71" x="0.181818" y="330.545" width="15.2727" height="42.7273">
    <properties>
     <property name="targetMap" value="maps/whisperMap.lua"/>
+    <property name="spawnX" type="float" value="950"/>
+    <property name="spawnY" type="float" value="350"/>
    </properties>
   </object>
   <object id="72" x="490.182" y="0.363636" width="58.7273" height="14.9091">

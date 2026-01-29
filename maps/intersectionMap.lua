@@ -974,7 +974,9 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["targetMap"] = "maps/whisperMap.lua"
+            ["targetMap"] = "maps/whisperMap.lua",
+            ["spawnX"] = 2980,
+            ["spawnY"] = 650
           }
         },
         {
