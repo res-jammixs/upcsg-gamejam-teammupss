@@ -269,10 +269,16 @@ function Game:interact()
                 self.player.collider:setPosition(portal.spawnX + 19, portal.spawnY + 35)
                 self.player.x = portal.spawnX
                 self.player.y = portal.spawnY
+                print(string.format("Player spawned at: x=%.2f, y=%.2f (window: %dx%d)", 
+                    portal.spawnX, portal.spawnY, 
+                    love.graphics.getWidth(), love.graphics.getHeight()))
             else
                 self.player.x = portal.x + portal.width / 2
                 self.player.y = portal.y + portal.height / 2
                 self.player.collider:setPosition(self.player.x + 19, self.player.y + 35)
+                print(string.format("Player spawned at portal center: x=%.2f, y=%.2f (window: %dx%d)", 
+                    self.player.x, self.player.y,
+                    love.graphics.getWidth(), love.graphics.getHeight()))
             end
             
             -- Then fade out to reveal the new room

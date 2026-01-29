@@ -5,8 +5,23 @@ local Transition = require('src.util.Transition')
 local currentState
 local transition
 
+-- Define the game's intended resolution (virtual resolution)
+GAME_WIDTH = 1024
+GAME_HEIGHT = 768
+
 function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest")
+    
+    -- Ensure the window is exactly the intended size
+    -- This helps prevent spawn point misalignment across different devices
+    local windowWidth, windowHeight = love.window.getMode()
+    if windowWidth ~= GAME_WIDTH or windowHeight ~= GAME_HEIGHT then
+        love.window.setMode(GAME_WIDTH, GAME_HEIGHT, {
+            resizable = false,
+            highdpi = true,
+            usedpiscale = true
+        })
+    end
 
     -- Initialize transition system
     transition = Transition:new()
