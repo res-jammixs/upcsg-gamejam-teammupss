@@ -991,7 +991,9 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["targetMap"] = "maps/frontyardMap.lua"
+            ["targetMap"] = "maps/frontyardMap.lua",
+            ["spawnX"] = 1490,
+            ["spawnY"] = 2210
           }
         }
       }
