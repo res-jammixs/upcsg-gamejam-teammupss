@@ -5,7 +5,7 @@ local wf = require 'lib/windfield'
 
 function MapManager:new()
     local self = {
-        currentMap = 'houseMap',
+        currentMap = 'zoomedHouseMap',
         currentMapObject = nil,
         world = nil,
         portals = {},
@@ -15,7 +15,7 @@ function MapManager:new()
 end
 
 function MapManager:init()
-    self:loadMap('houseMap')
+    self:loadMap('zoomedHouseMap')
 end
 
 function MapManager:loadMap(mapName)
@@ -51,12 +51,10 @@ function MapManager:loadWalls()
     
     if self.currentMapObject.layers and self.currentMapObject.layers["Walls"] and self.currentMapObject.layers["Walls"].objects then
         local scale = 3
-        local offsetX = -1037
-        local offsetY = -750
-        
+       
         for i, obj in pairs(self.currentMapObject.layers["Walls"].objects) do
-            local wallX = (obj.x * scale) + offsetX
-            local wallY = (obj.y * scale) + offsetY
+            local wallX = (obj.x * scale) 
+            local wallY = (obj.y * scale) 
             local wallW = obj.width * scale
             local wallH = obj.height * scale
 
@@ -75,12 +73,11 @@ function MapManager:loadPortals()
     
     if self.currentMapObject.layers and self.currentMapObject.layers["Portals"] and self.currentMapObject.layers["Portals"].objects then
         local scale = 3
-        local offsetX = -1037
-        local offsetY = -750
+        
         
         for i, obj in pairs(self.currentMapObject.layers["Portals"].objects) do
-            local portalX = (obj.x * scale) + offsetX
-            local portalY = (obj.y * scale) + offsetY
+            local portalX = (obj.x * scale)
+            local portalY = (obj.y * scale) 
             local portalW = obj.width * scale
             local portalH = obj.height * scale
             
@@ -145,7 +142,7 @@ end
 
 function MapManager:draw()
     if self.currentMapObject then
-        self.currentMapObject:draw(-345, -250, 3, 3)
+        self.currentMapObject:draw(0,0, 3, 3)
     end
 end
 
