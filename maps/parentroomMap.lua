@@ -196,6 +196,8 @@ return {
           rotation = 0,
           visible = true,
           properties = {
+            ["spawnX"] = 630,
+            ["spawnY"] = 220,
             ["targetMap"] = "maps/houseMap.lua"
           }
         }
