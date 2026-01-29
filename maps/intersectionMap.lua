@@ -9,8 +9,8 @@ return {
   height = 48,
   tilewidth = 16,
   tileheight = 16,
-  nextlayerid = 13,
-  nextobjectid = 70,
+  nextlayerid = 14,
+  nextobjectid = 73,
   properties = {},
   tilesets = {
     {
@@ -666,7 +666,7 @@ return {
       width = 64,
       height = 48,
       id = 4,
-      name = "HouseWalls",
+      name = "Walls",
       class = "",
       visible = true,
       opacity = 1,
@@ -934,10 +934,73 @@ return {
     {
       type = "objectgroup",
       draworder = "topdown",
+      id = 13,
+      name = "Portals",
+      class = "",
+      visible = true,
+      opacity = 1,
+      offsetx = 0,
+      offsety = 0,
+      parallaxx = 1,
+      parallaxy = 1,
+      properties = {},
+      objects = {
+        {
+          id = 70,
+          name = "",
+          type = "",
+          shape = "rectangle",
+          x = 1008.73,
+          y = 330.545,
+          width = 15.6364,
+          height = 42.3636,
+          rotation = 0,
+          visible = true,
+          properties = {
+            ["targetMap"] = "maps/ashMap.lua"
+          }
+        },
+        {
+          id = 71,
+          name = "",
+          type = "",
+          shape = "rectangle",
+          x = 0.181818,
+          y = 330.545,
+          width = 15.2727,
+          height = 42.7273,
+          rotation = 0,
+          visible = true,
+          properties = {
+            ["targetMap"] = "maps/whisperMap.lua",
+            ["spawnX"] = 3000,
+            ["spawnY"] = 650,
+          }
+        },
+        {
+          id = 72,
+          name = "",
+          type = "",
+          shape = "rectangle",
+          x = 490.182,
+          y = 0.363636,
+          width = 58.7273,
+          height = 14.9091,
+          rotation = 0,
+          visible = true,
+          properties = {
+            ["targetMap"] = "maps/frontyardMap.lua"
+          }
+        }
+      }
+    },
+    {
+      type = "objectgroup",
+      draworder = "topdown",
       id = 12,
       name = "Walls",
       class = "",
-      visible = true,
+      visible = false,
       opacity = 1,
       offsetx = 0,
       offsety = 0,

@@ -153,12 +153,15 @@ function Game:draw()
     if self.mapManager:isOutdoorMap() then
         cam:attach()
         self.mapManager:draw()
-        
+
         love.graphics.push()
         love.graphics.scale(1, 1)
         self.player:draw()
         love.graphics.pop()
-        
+
+        -- Draw layers that should appear above the player (fog, overhangs, etc.)
+        self.mapManager:drawAbovePlayer()
+
         cam:detach()
     else
         -- Indoor maps don't use camera

@@ -24,8 +24,17 @@ function MapManager:new()
         outdoorMaps = {
             "frontyardMap",
             "intersectionMap",
-            "ashMap"
+            "ashMap", 
+            "whisperMap"
         }
+        ,
+        -- Fog animation state (pixels)
+        fogOffsetX = 0,
+        fogOffsetY = 0,
+        fogAnimTime = 0,
+        fogAmplitudeX = 3, -- pixels
+        fogAmplitudeY = 2, -- pixels
+        fogSpeed = 0.8
     }
     return setmetatable(self, { __index = MapManager })
 end
@@ -54,6 +63,16 @@ function MapManager:loadMap(mapName)
     self.currentMap = cleanMapName
     self.currentMapObject = sti('maps/' .. cleanMapName .. '.lua')
     self.world = wf.newWorld(0, 0)
+    -- Find index of Fog2 (if present) so we can draw it above the player
+    self.fogStartIndex = nil
+    if self.currentMapObject.layers then
+        for i, layer in ipairs(self.currentMapObject.layers) do
+            if layer and layer.name == "Fog2" then
+                self.fogStartIndex = i
+                break
+            end
+        end
+    end
     
     -- Load walls
     self:loadWalls()
@@ -156,6 +175,13 @@ function MapManager:update(dt)
     if self.world then
         self.world:update(dt)
     end
+    -- Update fog animation time and offsets
+    self.fogAnimTime = (self.fogAnimTime or 0) + dt
+    local s = self.fogSpeed or 0.8
+    local ax = self.fogAmplitudeX or 3
+    local ay = self.fogAmplitudeY or 2
+    self.fogOffsetX = math.sin(self.fogAnimTime * s * 1.2) * ax
+    self.fogOffsetY = math.cos(self.fogAnimTime * s * 0.9) * ay
 end
 
 function MapManager:isOutdoorMap()
@@ -170,25 +196,57 @@ end
 function MapManager:draw()  
     if self.currentMapObject then
         if self:isOutdoorMap() then
-            -- Outdoor maps: draw each layer separately for camera control with 5x zoom
-            -- Draw layers in order (skip Portals and Walls as they're object layers)
-            local layerOrder = {"Background", "Road01", "Road", "Crops", "Bush", "Bush01", "WaterEdge", "HouseWalls", "House01", "Roof", "Tree01", "Signs", "Roof01", "Roof02", "Roof03", "HIlls01", "Hills02", "Biome02", "Biome01"}
-            
-            love.graphics.push()
-            love.graphics.scale(3, 3)
-            
-            for _, layerName in ipairs(layerOrder) do
-                if self.currentMapObject.layers[layerName] then
-                    self.currentMapObject:drawLayer(self.currentMapObject.layers[layerName])
+                -- Outdoor maps: draw each tile layer in the map's defined order
+                love.graphics.push()
+                love.graphics.scale(3, 3)
+
+                -- Iterate the map's layers in their stored order and draw tile layers
+                -- Stop before the Fog2 layer so we can render it after the player.
+                for i, layer in ipairs(self.currentMapObject.layers) do
+                    if layer and layer.type == "tilelayer" then
+                        if self.fogStartIndex and i >= self.fogStartIndex then
+                            break
+                        end
+                        self.currentMapObject:drawLayer(layer)
+                    end
                 end
-            end
-            
-            love.graphics.pop()
+
+                love.graphics.pop()
         else
             -- Indoor maps: draw normally with fixed offset
             self.currentMapObject:draw(0, 0, 3, 3)
         end
     end
+end
+
+-- Draw any layers that should appear above the player (e.g., Fog2)
+function MapManager:drawAbovePlayer()
+    if not self.currentMapObject then return end
+    if not self:isOutdoorMap() then return end
+
+    love.graphics.push()
+    love.graphics.scale(3, 3)
+
+    -- Apply a small translation to animate fog (offsets are in pixels; divide by scale)
+    local dx = (self.fogOffsetX or 0) / 3
+    local dy = (self.fogOffsetY or 0) / 3
+    if dx ~= 0 or dy ~= 0 then
+        love.graphics.translate(dx, dy)
+    end
+
+    local draw = false
+    for i, layer in ipairs(self.currentMapObject.layers) do
+        if layer and layer.type == "tilelayer" then
+            if self.fogStartIndex and i >= self.fogStartIndex then
+                draw = true
+            end
+            if draw then
+                self.currentMapObject:drawLayer(layer)
+            end
+        end
+    end
+
+    love.graphics.pop()
 end
 
 function MapManager:recreatePlayerCollider(player)

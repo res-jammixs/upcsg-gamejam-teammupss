@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="64" height="48" tilewidth="16" tileheight="16" infinite="0" nextlayerid="13" nextobjectid="70">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="64" height="48" tilewidth="16" tileheight="16" infinite="0" nextlayerid="14" nextobjectid="73">
  <tileset firstgid="1" name="grass" tilewidth="16" tileheight="16" tilecount="77" columns="11">
   <image source="tilesets/grass.png" width="176" height="112"/>
  </tileset>
@@ -510,7 +510,24 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="12" name="Walls">
+ <objectgroup id="13" name="Portals">
+  <object id="70" x="1008.73" y="330.545" width="15.6364" height="42.3636">
+   <properties>
+    <property name="targetMap" value="maps/ashMap.lua"/>
+   </properties>
+  </object>
+  <object id="71" x="0.181818" y="330.545" width="15.2727" height="42.7273">
+   <properties>
+    <property name="targetMap" value="maps/whisperMap.lua"/>
+   </properties>
+  </object>
+  <object id="72" x="490.182" y="0.363636" width="58.7273" height="14.9091">
+   <properties>
+    <property name="targetMap" value="maps/intersectionMap.lua"/>
+   </properties>
+  </object>
+ </objectgroup>
+ <objectgroup id="12" name="Walls" visible="0">
   <object id="1" x="203" y="521.5" width="105.5" height="86.25"/>
   <object id="3" x="329.636" y="528.182" width="60.5455" height="79.2727"/>
   <object id="4" x="409.909" y="527.818" width="60.5455" height="79.2727"/>

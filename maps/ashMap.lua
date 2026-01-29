@@ -210,7 +210,7 @@ return {
       spacing = 0,
       margin = 0,
       columns = 9,
-      image = "../../../../Downloads/maps/biome-ash.png",
+      image = "tilesets/biome-ash.png",
       imagewidth = 144,
       imageheight = 80,
       objectalignment = "unspecified",
@@ -7374,9 +7374,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["maps/intersectionMap.lua"] = "",
-            ["spawnX"] = 0,
-            ["spawnY"] = 0
+            ["targetMap"] = "maps/intersectionMap.lua"
           }
         }
       }
