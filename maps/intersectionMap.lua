@@ -957,6 +957,8 @@ return {
           rotation = 0,
           visible = true,
           properties = {
+            ["spawnX"] = 60,
+            ["spawnY"] = 1200,
             ["targetMap"] = "maps/ashMap.lua"
           }
         },
