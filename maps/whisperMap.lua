@@ -10,7 +10,7 @@ return {
   tilewidth = 16,
   tileheight = 16,
   nextlayerid = 14,
-  nextobjectid = 319,
+  nextobjectid = 321,
   properties = {},
   tilesets = {
     {
@@ -963,7 +963,7 @@ return {
       id = 12,
       name = "Walls",
       class = "",
-      visible = true,
+      visible = false,
       opacity = 1,
       offsetx = 0,
       offsety = 0,
@@ -3869,6 +3869,32 @@ return {
           rotation = 0,
           visible = true,
           properties = {}
+        },
+        {
+          id = 319,
+          name = "",
+          type = "",
+          shape = "rectangle",
+          x = 1013.45,
+          y = 169.091,
+          width = 17.4545,
+          height = 124.727,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 320,
+          name = "",
+          type = "",
+          shape = "rectangle",
+          x = 1004.55,
+          y = 243.455,
+          width = 25.0909,
+          height = 44.7273,
+          rotation = 0,
+          visible = true,
+          properties = {}
         }
       }
     },
@@ -3878,7 +3904,7 @@ return {
       id = 13,
       name = "Portals",
       class = "",
-      visible = true,
+      visible = false,
       opacity = 1,
       offsetx = 0,
       offsety = 0,
@@ -3900,7 +3926,7 @@ return {
           properties = {
             ["targetMap"] = "maps/intersectionMap.lua",
             ["spawnX"] = 10,
-            ["spawnY"] = 1035,
+            ["spawnY"] = 1032,
           }
         }
       }

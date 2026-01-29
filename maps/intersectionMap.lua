@@ -10,7 +10,7 @@ return {
   tilewidth = 16,
   tileheight = 16,
   nextlayerid = 14,
-  nextobjectid = 73,
+  nextobjectid = 79,
   properties = {},
   tilesets = {
     {
@@ -937,7 +937,7 @@ return {
       id = 13,
       name = "Portals",
       class = "",
-      visible = true,
+      visible = false,
       opacity = 1,
       offsetx = 0,
       offsety = 0,
@@ -972,9 +972,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["targetMap"] = "maps/whisperMap.lua",
-            ["spawnX"] = 3000,
-            ["spawnY"] = 650,
+            ["targetMap"] = "maps/whisperMap.lua"
           }
         },
         {
@@ -1914,6 +1912,58 @@ return {
             { x = 1062.06, y = 7.68333 },
             { x = 0.280792, y = 7.68271 }
           },
+          properties = {}
+        },
+        {
+          id = 73,
+          name = "",
+          type = "",
+          shape = "rectangle",
+          x = -1.33333,
+          y = -14.6667,
+          width = 8,
+          height = 813.333,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 75,
+          name = "",
+          type = "",
+          shape = "rectangle",
+          x = -26,
+          y = 758,
+          width = 1074,
+          height = 32,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 77,
+          name = "",
+          type = "",
+          shape = "rectangle",
+          x = 1013,
+          y = -11,
+          width = 59,
+          height = 807,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 78,
+          name = "",
+          type = "",
+          shape = "rectangle",
+          x = -30,
+          y = -37,
+          width = 1087,
+          height = 50,
+          rotation = 0,
+          visible = true,
           properties = {}
         }
       }
