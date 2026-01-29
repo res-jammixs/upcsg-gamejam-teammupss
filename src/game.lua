@@ -221,13 +221,15 @@ function Game:interact()
             
             -- Position player at spawn location if defined, otherwise at portal center
             if portal.spawnX and portal.spawnY then
+                -- Spawn coordinates are for the player sprite, but collider needs offset adjustment
+                self.player.collider:setPosition(portal.spawnX + 19, portal.spawnY + 35)
                 self.player.x = portal.spawnX
                 self.player.y = portal.spawnY
             else
                 self.player.x = portal.x + portal.width / 2
                 self.player.y = portal.y + portal.height / 2
+                self.player.collider:setPosition(self.player.x + 19, self.player.y + 35)
             end
-            self.player.collider:setPosition(self.player.x, self.player.y)
             
             -- Then fade out to reveal the new room
             transition:fadeOut(0.5)

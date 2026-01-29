@@ -906,8 +906,8 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["spawnX"] = 645,
-            ["spawnY"] = 450,
+            ["spawnX"] = 600,
+            ["spawnY"] = 423,
             ["targetMap"] = "maps/duckyroomMap.lua"
           }
         },
@@ -923,8 +923,8 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["spawnX"] = 380,
-            ["spawnY"] = 490,
+            ["spawnX"] = 630,
+            ["spawnY"] = 220,
             ["targetMap"] = "maps/parentroomMap.lua"
           }
         },

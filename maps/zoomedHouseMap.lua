@@ -711,8 +711,8 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["spawnX"] = 558,
-            ["spawnY"] = 430,
+            ["spawnX"] = 650,
+            ["spawnY"] = 423,
             ["targetMap"] = "maps/zoomedDuckroomMap.lua"
           }
         },
@@ -728,8 +728,8 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["spawnX"] = 558,
-            ["spawnY"] = 430,
+            ["spawnX"] = 400,
+            ["spawnY"] = 450,
             ["targetMap"] = "maps/parentroomMap.lua"
           }
         },
