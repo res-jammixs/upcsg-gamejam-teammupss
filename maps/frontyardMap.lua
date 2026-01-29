@@ -9,8 +9,8 @@ return {
   height = 48,
   tilewidth = 16,
   tileheight = 16,
-  nextlayerid = 16,
-  nextobjectid = 170,
+  nextlayerid = 17,
+  nextobjectid = 175,
   properties = {},
   tilesets = {
     {
@@ -257,6 +257,35 @@ return {
       properties = {},
       wangsets = {},
       tilecount = 35,
+      tiles = {}
+    },
+    {
+      name = "furniture",
+      firstgid = 338,
+      class = "",
+      tilewidth = 16,
+      tileheight = 16,
+      spacing = 0,
+      margin = 0,
+      columns = 9,
+      image = "tilesets/furniture.png",
+      imagewidth = 144,
+      imageheight = 96,
+      objectalignment = "unspecified",
+      tilerendersize = "tile",
+      fillmode = "stretch",
+      tileoffset = {
+        x = 0,
+        y = 0
+      },
+      grid = {
+        orientation = "orthogonal",
+        width = 16,
+        height = 16
+      },
+      properties = {},
+      wangsets = {},
+      tilecount = 54,
       tiles = {}
     }
   },
@@ -1073,7 +1102,7 @@ return {
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 78, 88, 89, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 79, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 87, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 88, 89, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 78, 0, 0, 87, 0, 0, 0, 0, 0, 0, 0, 0, 79, 80, 0,
-        79, 80, 87, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 87, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 88, 89, 0,
+        79, 80, 87, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 389, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 87, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 88, 89, 0,
         88, 89, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
       }
     },
@@ -1106,6 +1135,21 @@ return {
             ["spawnX"] = 520,
             ["spawnY"] = 600,
             ["targetMap"] = "maps/houseMap.lua"
+          }
+        },
+        {
+          id = 170,
+          name = "",
+          type = "",
+          shape = "rectangle",
+          x = 473.5,
+          y = 756.75,
+          width = 60.25,
+          height = 10.25,
+          rotation = 0,
+          visible = true,
+          properties = {
+            ["targetMap"] = "maps/intersectionMap.lua"
           }
         }
       }
@@ -3109,6 +3153,19 @@ return {
           y = 675.182,
           width = 2.63636,
           height = 4.81818,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 174,
+          name = "",
+          type = "",
+          shape = "rectangle",
+          x = 447.75,
+          y = 735.75,
+          width = 16.25,
+          height = 16.375,
           rotation = 0,
           visible = true,
           properties = {}
