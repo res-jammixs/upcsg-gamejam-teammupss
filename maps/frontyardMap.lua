@@ -1132,9 +1132,9 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["spawnX"] = 520,
-            ["spawnY"] = 600,
-            ["targetMap"] = "maps/houseMap.lua"
+            ["spawnX"] = 540,
+            ["spawnY"] = 510,
+            ["targetMap"] = "maps/zoomedHouseMap.lua"
           }
         },
         {
