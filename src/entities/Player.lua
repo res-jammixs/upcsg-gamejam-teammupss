@@ -15,11 +15,11 @@ function Player:new()
     -- Load walking and sprint sounds
     local walkingSound = love.audio.newSource('assets/sounds/sfx/walking-sound.mp3', 'stream')
     walkingSound:setLooping(true)
-    walkingSound:setVolume(0.2)
+    walkingSound:setVolume(0.1)
     
     local sprintSound = love.audio.newSource('assets/sounds/sfx/sprint-sound.mp3', 'stream')
     sprintSound:setLooping(true)
-    sprintSound:setVolume(0.2)
+    sprintSound:setVolume(0.1)
     
     local self = {
         x = 482,

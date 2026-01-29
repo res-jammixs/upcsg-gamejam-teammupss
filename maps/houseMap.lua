@@ -940,6 +940,8 @@ return {
           rotation = 0,
           visible = true,
           properties = {
+            ["spawnX"] = 480,
+            ["spawnY"] = 280,
             ["targetMap"] = "maps/frontyardMap.lua"
           }
         }
