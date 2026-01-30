@@ -6,10 +6,16 @@ local ItemManager = {}
 
 function ItemManager:new()
     print("=== ITEM MANAGER INITIALIZED ===")
+    
+    -- Load item collection sound
+    local itemCollectedSound = love.audio.newSource('assets/sounds/sfx/item-collected.mp3', 'static')
+    itemCollectedSound:setVolume(0.4)
+    
     local self = {
         items = {},
         collectedItems = {}, -- Persists across maps (tracks by ID)
         completionTriggered = false, -- Track if completion message shown
+        itemCollectedSound = itemCollectedSound, -- Store the sound
         
         -- Simple notification system (matches game.lua UI style)
         notification = {
@@ -188,9 +194,11 @@ function ItemManager:collectItem(item, index)
     item:collect()
     print("Called item:collect() method")
     
-    -- TODO: Play sound effect
-    -- local collectSound = love.audio.newSource('assets/sounds/sfx/collect.wav', 'static')
-    -- collectSound:play()
+    -- Play item collection sound
+    if self.itemCollectedSound then
+        self.itemCollectedSound:stop() -- Stop if already playing
+        self.itemCollectedSound:play()
+    end
     
     -- Remove from active items
     table.remove(self.items, index)
