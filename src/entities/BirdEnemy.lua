@@ -250,6 +250,10 @@ function BirdEnemy:update(dt, playerX, playerY)
         -- Check if out of chase area
         if distFromSpawn > self.chaseAreaRadius then
             self.state = 'return'
+            -- Stop owl sound when leaving chase area
+            if self.owlSound and self.owlSound:isPlaying() then
+                self.owlSound:stop()
+            end
             self.chaseAnim = self.currentAnim -- Remember the animation from chase
             local nearestPatrol = self:findNearestPatrolPoint()
             local pointX, pointY, angle = self:findNearestPointOnCircle(nearestPatrol.x, nearestPatrol.y, nearestPatrol.radius)

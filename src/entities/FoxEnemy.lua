@@ -15,7 +15,7 @@ function FoxEnemy:new(x, y, patrolWidth, patrolHeight, movementAxis, facingDirec
     
     -- Load fox sound
     local foxSound = love.audio.newSource('assets/sounds/sfx/fox-sound.mp3', 'static')
-    foxSound:setVolume(0.3)
+    foxSound:setVolume(0.08)
     foxSound:setLooping(true)
     
     -- Use exact same grid coordinates as BirdEnemy
