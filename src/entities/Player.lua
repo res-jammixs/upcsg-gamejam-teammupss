@@ -35,7 +35,7 @@ function Player:new()
         x = 528, -- original 528
         y = 384, -- orignal 384 
         -- original speed is 400
-        speed = 10000,
+        speed = 3000,
         sprintSpeed = 1300,
         sprite = sprite,
         grid = grid,
