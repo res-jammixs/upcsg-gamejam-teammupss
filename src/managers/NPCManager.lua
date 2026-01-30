@@ -101,10 +101,10 @@ function NPCManager:spawnNPCsForMap(mapName, world)
     end
 end
 
-function NPCManager:update(dt)
-    -- Update all NPCs
+function NPCManager:update(dt, playerCollider)
+    -- Update all NPCs, passing player collider for collision detection
     for _, npc in ipairs(self.npcs) do
-        npc:update(dt)
+        npc:update(dt, playerCollider)
     end
 end
 

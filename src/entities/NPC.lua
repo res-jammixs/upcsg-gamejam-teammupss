@@ -78,18 +78,25 @@ function NPC:new(x, y, spritePath, dialogueKey, name, movementType, moveDistance
         -- Using the sprite center as collider position
         local colliderX = self.x + (self.width / 2)
         local colliderY = self.y + (self.height / 2)
-        self.collider = world:newBSGRectangleCollider(colliderX, colliderY, self.width * 0.6, self.height * 0.5, 10)
+        local colliderW = self.width * 0.6
+        local colliderH = self.height * 0.5
+        self.collider = world:newBSGRectangleCollider(colliderX, colliderY, colliderW, colliderH, 10)
         self.collider:setFixedRotation(true)
         self.collider:setType('static') -- NPCs don't move by physics, we control their position
+        
+        -- Store collider dimensions for later use
+        self.colliderWidth = colliderW
+        self.colliderHeight = colliderH
     end
     
     return setmetatable(self, { __index = NPC })
 end
 
-function NPC:update(dt)
+function NPC:update(dt, playerCollider)
     -- Handle movement if NPC has movement type
     if self.movementType == 1 then -- Horizontal movement
         -- Move left or right
+        local oldX = self.x
         self.x = self.x + (self.moveSpeed * self.direction * dt)
         
         -- Update collider position if it exists
@@ -97,6 +104,26 @@ function NPC:update(dt)
             local colliderX = self.x + (self.width / 2)
             local colliderY = self.y + (self.height / 2)
             self.collider:setPosition(colliderX, colliderY)
+        end
+        
+        -- Push player if they're in the way
+        if playerCollider and self.collider then
+            -- Check if NPC collider overlaps with player collider using AABB
+            local npcX, npcY = self.collider:getPosition()
+            local npcW, npcH = self.colliderWidth, self.colliderHeight
+            local playerX, playerY = playerCollider:getPosition()
+            -- Player collider is 37x30 (from game.lua)
+            local playerW, playerH = 37, 30
+            
+            -- AABB collision check
+            if npcX - npcW/2 < playerX + playerW/2 and
+               npcX + npcW/2 > playerX - playerW/2 and
+               npcY - npcH/2 < playerY + playerH/2 and
+               npcY + npcH/2 > playerY - playerH/2 then
+                -- Push player in the direction NPC is moving
+                local pushForce = self.moveSpeed * self.direction * 1.5
+                playerCollider:setPosition(playerX + pushForce * dt, playerY)
+            end
         end
         
         -- Check if we've moved too far from start position
@@ -138,13 +165,20 @@ function NPC:draw()
 end
 
 function NPC:checkPlayerInteraction(playerX, playerY)
+    -- Use exact player hitbox dimensions from Player.lua
+    -- Player hitbox: width=37, height=51, offsetX=-19, offsetY=-35
+    local playerHitboxX = playerX - 19
+    local playerHitboxY = playerY - 35
+    local playerHitboxW = 37
+    local playerHitboxH = 51
+    
+    -- Calculate center of player hitbox
+    local playerCenterX = playerHitboxX + playerHitboxW / 2
+    local playerCenterY = playerHitboxY + playerHitboxH / 2
+    
     -- Calculate center of NPC
     local npcCenterX = self.x + self.width / 2
     local npcCenterY = self.y + self.height / 2
-    
-    -- Calculate center of player
-    local playerCenterX = playerX + 18 -- Player width is ~36
-    local playerCenterY = playerY + 27 -- Player height is ~54
     
     -- Calculate distance
     local dist = math.sqrt(

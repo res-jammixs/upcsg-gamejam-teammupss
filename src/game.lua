@@ -107,7 +107,7 @@ function Game:init()
     -- Initialize enemy manager
     self.enemyManager = EnemyManager:new()
     self.enemyManager:init()
-    self.enemyManager:spawnEnemiesForMap(self.mapManager.currentMap, world)
+    self.enemyManager:spawnEnemiesForMap(self.mapManager.currentMap, world, self.mapManager.currentMapObject)
     
     -- Initialize NPC manager
     self.npcManager = NPCManager:new()
@@ -170,8 +170,8 @@ function Game:update(dt)
     -- Update enemies with player position
     self.enemyManager:update(dt, self.player.x, self.player.y)
     
-    -- Update NPCs
-    self.npcManager:update(dt)
+    -- Update NPCs (pass player collider for pushing)
+    self.npcManager:update(dt, self.player.collider)
     
     self.player.x = self.player.collider:getX() - 19
     self.player.y = self.player.collider:getY() - 35
@@ -274,13 +274,10 @@ function Game:keypressed(key)
     if key == 'f' or key == 'F' then
         self:interact()
     elseif key == 'e' or key == 'E' then
-        -- Check if near an NPC first
+        -- Check if near an NPC
         local nearbyNPC = self.npcManager:checkPlayerInteraction(self.player.x, self.player.y)
         if nearbyNPC then
             self:triggerNPCDialogue(nearbyNPC)
-        else
-            -- Fallback to test dialogue
-            self:triggerDialogue()
         end
     elseif key == 'space' then
         -- Test: Remove last enemy
@@ -364,7 +361,7 @@ function Game:interact()
             end
             
             -- Spawn enemies for the new map
-            self.enemyManager:spawnEnemiesForMap(portal.targetMap, self.mapManager:getWorld())
+            self.enemyManager:spawnEnemiesForMap(portal.targetMap, self.mapManager:getWorld(), self.mapManager.currentMapObject)
             
             -- Spawn NPCs for the new map
             self.npcManager:spawnNPCsForMap(portal.targetMap, self.mapManager:getWorld())
@@ -374,13 +371,6 @@ function Game:interact()
             self.isTransitioning = false
         end)
     end
-end
-
-function Game:triggerDialogue()
-    -- Switch to Dialogue state, passing the current game instance
-    local Dialogue = require('src.states.Dialogue')
-    local dialogueState = Dialogue:new(self, "testDialogue")
-    switchState(dialogueState)
 end
 
 function Game:triggerNPCDialogue(npc)
@@ -393,11 +383,6 @@ end
 function Game:drawNPCInteractionPrompt(npc)
     love.graphics.setFont(self.uiFont)
     self:drawTextWithShadow("Press E to talk to " .. npc.name, 50)
-end
-
-function Game:drawDialoguePrompt()
-    love.graphics.setFont(self.uiFont)
-    self:drawTextWithShadow("Press E to talk", 50)
 end
 
 function Game:findSafeRespawnPoint(baseX, baseY)
@@ -439,13 +424,26 @@ end
 function Game:handlePlayerDeath(enemy)
     self.isTransitioning = true
     
+    -- Stop player movement sounds
+    if self.player.walkingSound then
+        self.player.walkingSound:stop()
+    end
+    if self.player.sprintSound then
+        self.player.sprintSound:stop()
+    end
+    
     -- Get respawn position
     local respawnX, respawnY
     local currentMap = self.mapManager.currentMap
     
     print("DEBUG: Current map name: '" .. tostring(currentMap) .. "'")
     
-    if currentMap == 'whisperMap' and self.whisperMapEntryX and self.whisperMapEntryY then
+    if currentMap == 'ashMap' then
+        -- Use specific respawn point for ashMap
+        print("DEBUG: Using ashMap respawn point")
+        respawnX = 6
+        respawnY = 1200
+    elseif currentMap == 'whisperMap' and self.whisperMapEntryX and self.whisperMapEntryY then
         -- Use the entry point where player first entered whisperMap
         print("DEBUG: Using whisperMap entry point respawn")
         respawnX = self.whisperMapEntryX
