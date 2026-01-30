@@ -1,5 +1,13 @@
 NPC = {}
 
+-- NPC hitbox for collision (based on sprite dimensions 12x18 scaled by 3 = 36x54)
+local HITBOX = {
+    width = 24,     -- Narrower than full sprite width (36)
+    height = 52,    -- Nearly full sprite height (54)
+    offsetX = 6,    -- Center horizontally (36-24)/2 = 6
+    offsetY = 1     -- Small offset from top
+}
+
 function NPC:new(x, y, spritePath, dialogueKey, name, movementType, moveDistance, moveSpeed, facingDirection, spriteFrame, world)
     local anim8 = require('lib.anim8')
     
@@ -74,12 +82,11 @@ function NPC:new(x, y, spritePath, dialogueKey, name, movementType, moveDistance
     
     -- Create collider if world is provided
     if world then
-        -- Create a collider similar to the player (rectangle collider)
-        -- Using the sprite center as collider position
-        local colliderX = self.x + (self.width / 2)
-        local colliderY = self.y + (self.height / 2)
-        local colliderW = self.width * 0.6
-        local colliderH = self.height * 0.5
+        -- Create a collider based on HITBOX constant (like Player and Enemies)
+        local colliderX = self.x + HITBOX.offsetX + (HITBOX.width / 2)
+        local colliderY = self.y + HITBOX.offsetY + (HITBOX.height / 2)
+        local colliderW = HITBOX.width
+        local colliderH = HITBOX.height
         self.collider = world:newBSGRectangleCollider(colliderX, colliderY, colliderW, colliderH, 10)
         self.collider:setFixedRotation(true)
         self.collider:setType('static') -- NPCs don't move by physics, we control their position
@@ -101,8 +108,8 @@ function NPC:update(dt, playerCollider)
         
         -- Update collider position if it exists
         if self.collider then
-            local colliderX = self.x + (self.width / 2)
-            local colliderY = self.y + (self.height / 2)
+            local colliderX = self.x + HITBOX.offsetX + (HITBOX.width / 2)
+            local colliderY = self.y + HITBOX.offsetY + (HITBOX.height / 2)
             self.collider:setPosition(colliderX, colliderY)
         end
         
@@ -162,6 +169,11 @@ function NPC:draw()
         love.graphics.rectangle('fill', self.x, self.y, 36, 54)
         love.graphics.setColor(1, 1, 1, 1)
     end
+    
+    -- -- Debug: Draw NPC hitbox
+    -- love.graphics.setColor(1, 0, 0, 0.5)
+    -- love.graphics.rectangle("line", self.x + HITBOX.offsetX, self.y + HITBOX.offsetY, HITBOX.width, HITBOX.height)
+    -- love.graphics.setColor(1, 1, 1, 1)
 end
 
 function NPC:checkPlayerInteraction(playerX, playerY)
@@ -181,6 +193,19 @@ function NPC:checkPlayerInteraction(playerX, playerY)
     )
     
     return dist < self.interactionRadius
+end
+
+-- Check collision between NPC hitbox and player hitbox (like BirdEnemy/FoxEnemy)
+function NPC:checkCollision(playerX, playerY, playerWidth, playerHeight)
+    local hbX = self.x + HITBOX.offsetX
+    local hbY = self.y + HITBOX.offsetY
+    local hbW = HITBOX.width
+    local hbH = HITBOX.height
+
+    return hbX < playerX + playerWidth and
+           hbX + hbW > playerX and
+           hbY < playerY + playerHeight and
+           hbY + hbH > playerY
 end
 
 function NPC:destroy()

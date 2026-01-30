@@ -167,14 +167,6 @@ function Player:draw()
     -- Reset color and draw player
     love.graphics.setColor(1, 1, 1, 1)
     self.animations[self.currentAnim]:draw(self.sprite, self.x, self.y, nil, 3)
-    
-    -- Debug: Draw player hitbox (collider is 37x30, offset from sprite)
-    if self.collider then
-        love.graphics.setColor(0, 1, 0, 0.5)
-        local hbX, hbY = self.collider:getPosition()
-        love.graphics.rectangle("line", hbX + HITBOX.offsetX, hbY + HITBOX.offsetY, HITBOX.width, HITBOX.height)
-        love.graphics.setColor(1, 1, 1, 1)
-    end
 end
 
 return Player

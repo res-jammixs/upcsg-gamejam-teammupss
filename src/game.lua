@@ -5,6 +5,10 @@ local ItemManager = require('src.managers.ItemManager')
 local InventoryUI = require('src.managers.InventoryUI')
 local SignageManager = require('src.util.SignageManager')
 local StoryManager = require('src.managers.StoryManager')
+local DialogueRoute1 = require('data.DialogueRoute1')
+local DialogueRoute2 = require('data.DialogueRoute2')
+local DialogueRoute3 = require('data.DialogueRoute3')
+local EndingScreen = require('src.states.EndingScreen')
 
 Game = {}
 local gameMusic = nil -- Store music reference globally
@@ -129,6 +133,13 @@ function Game:init()
     self.whisperMapEntryX = nil
     self.whisperMapEntryY = nil
     
+    -- Ending routes state tracking
+    self.hasTriggeredScene13 = false
+    self.routeNPCsSpawned = false
+    self.currentDialogueRoute = nil
+    self.endingScreen = nil
+    self.showingEnding = false
+    
     -- Create player collider in the current world
     local world = self.mapManager:getWorld()
     self.player.collider = world:newBSGRectangleCollider(self.player.x, self.player.y, 37, 30, 10)
@@ -228,6 +239,12 @@ function Game:enter()
 end
 
 function Game:update(dt)
+    -- Handle ending screen
+    if self.showingEnding and self.endingScreen then
+        self.endingScreen:update(dt)
+        return
+    end
+    
     -- Don't update player during transition
     if self.isTransitioning then
         return
@@ -261,6 +278,37 @@ function Game:update(dt)
     
     self.player.x = self.player.collider:getX() - 19
     self.player.y = self.player.collider:getY() - 35
+    
+    -- Check for collision with NPCs and block player movement
+    local collidedNPC = self.npcManager:checkPlayerCollision(self.player.x, self.player.y, 36, 54)
+    if collidedNPC then
+        -- Push player back from NPC (using NPC hitbox dimensions: 24x52 with offset 6,1)
+        local npcHitboxX = collidedNPC.x + 6
+        local npcHitboxY = collidedNPC.y + 1
+        local npcHitboxW = 24
+        local npcHitboxH = 52
+        
+        -- Calculate overlap and push player away
+        local playerCenterX = self.player.x + 18
+        local playerCenterY = self.player.y + 27
+        local npcCenterX = npcHitboxX + npcHitboxW / 2
+        local npcCenterY = npcHitboxY + npcHitboxH / 2
+        
+        local dx = playerCenterX - npcCenterX
+        local dy = playerCenterY - npcCenterY
+        local dist = math.sqrt(dx * dx + dy * dy)
+        
+        if dist > 0 then
+            -- Push player away from NPC
+            local pushDistance = 2
+            local pushX = (dx / dist) * pushDistance
+            local pushY = (dy / dist) * pushDistance
+            self.player.collider:setPosition(
+                self.player.collider:getX() + pushX,
+                self.player.collider:getY() + pushY
+            )
+        end
+    end
     
     -- Check for collision with enemies (using sprite dimensions)
     local collidedEnemy = self.enemyManager:checkPlayerCollision(self.player.x, self.player.y, 36, 54)
@@ -335,6 +383,12 @@ function Game:update(dt)
 end
 
 function Game:draw()
+    -- Handle ending screen
+    if self.showingEnding and self.endingScreen then
+        self.endingScreen:draw()
+        return
+    end
+    
     -- Handle camera for outdoor maps
     if self.mapManager:isOutdoorMap() then
         -- Check if we're in maze map for darkness effect
@@ -368,14 +422,22 @@ function Game:draw()
             -- Apply darkness shader only if darkness is still visible
             love.graphics.setCanvas()
             
-            -- Calculate player position in screen coordinates
-            local screenX = self.player.x - cam.x + love.graphics.getWidth() / 2
-            local screenY = self.player.y - cam.y + love.graphics.getHeight() / 2
+            -- Calculate player center position in screen coordinates
+            -- Player sprite is 12x18 scaled by 3 = 36x54, so center is at +18, +27
+            local playerCenterX = self.player.x + 18
+            local playerCenterY = self.player.y + 27
+            local screenX = playerCenterX - cam.x + love.graphics.getWidth() / 2
+            local screenY = playerCenterY - cam.y + love.graphics.getHeight() / 2
+            
+            -- Calculate expand radius: as darkness fades (1.0 -> 0.0), light expands (1.0 -> 10.0)
+            local fadeProgress = 1.0 - self.mapManager.darknessFadeAmount -- 0.0 -> 1.0
+            local expandRadius = 1.0 + (fadeProgress * 9.0) -- 1.0 -> 10.0 (exponential expansion)
             
             -- Set shader parameters (3 tiles = 16 * 3 = 48 pixels per tile at scale 3 = 144 pixels radius)
             self.mapManager.darknessShader:send("playerPos", {screenX, screenY})
             self.mapManager.darknessShader:send("lightRadius", 144) -- 3 tiles radius
             self.mapManager.darknessShader:send("darknessFade", self.mapManager.darknessFadeAmount)
+            self.mapManager.darknessShader:send("expandRadius", expandRadius)
             
             -- Draw the canvas with shader applied
             love.graphics.setShader(self.mapManager.darknessShader)
@@ -495,6 +557,12 @@ function Game:draw()
 end
 
 function Game:keypressed(key)
+    -- Handle ending screen input
+    if self.showingEnding and self.endingScreen then
+        self.endingScreen:keypressed(key)
+        return
+    end
+    
     -- Handle ESC to return to main menu
     if key == 'escape' then
         -- Stop all game music
@@ -532,7 +600,7 @@ function Game:keypressed(key)
             local playerX = self.player.collider:getX()
             local playerY = self.player.collider:getY()
             if self.mapManager:checkMilkfishInteraction(playerX, playerY) then
-                self.mapManager:activateMilkfish()
+                self.mapManager:activateMilkfish(self.itemManager)
                 return
             end
         end
@@ -570,6 +638,14 @@ function Game:keypressed(key)
         
         -- Otherwise check for portal interaction
         self:interact()
+    end
+end
+
+function Game:mousepressed(x, y, button)
+    -- Handle ending screen input
+    if self.showingEnding and self.endingScreen then
+        self.endingScreen:mousepressed(x, y, button)
+        return
     end
 end
 
@@ -686,6 +762,17 @@ function Game:handleMapTransition(targetMap, spawnX, spawnY)
                 print("DEBUG: Entered Town Square - Advanced to obj10")
             else
                 print("DEBUG: Current objective is not obj9, it's: " .. tostring(self.storyManager.currentObjective))
+            end
+            
+            -- Check if returning after collecting 10 ashberries and scene13 not triggered
+            if not self.hasTriggeredScene13 and _G.inventory and (_G.inventory.ashberry or 0) >= 10 then
+                print("DEBUG: Triggering scene13 - Final stretch")
+                self.hasTriggeredScene13 = true
+                self.storyManager:playScene("scene13", function()
+                    print("DEBUG: scene13 completed, spawning route NPCs")
+                    -- After scene13, spawn dad and mistress NPCs
+                    self:spawnRouteNPCs()
+                end)
             end
         end
         
@@ -912,4 +999,185 @@ function Game:handlePlayerDeath(enemy)
     end, caughtScreenX, caughtScreenY)
 end
 
+function Game:spawnRouteNPCs()
+    if self.routeNPCsSpawned then return end
+    
+    print("DEBUG: Spawning dad and mistress NPCs at 2832, 1152")
+    
+    local world = self.mapManager:getWorld()
+    local NPC = require('src.entities.NPC')
+    
+    -- Spawn Dad NPC
+    -- NPC:new(x, y, spritePath, dialogueKey, name, movementType, moveDistance, moveSpeed, facingDirection, spriteFrame, world)
+    local dadNPC = NPC:new(
+        2832,
+        1152,
+        "assets/graphics/characters/dad-duckie-sprite-sheet.png",
+        "father_route",
+        "Father",
+        0, -- movementType: stationary
+        0, -- moveDistance
+        0, -- moveSpeed
+        "down", -- facingDirection
+        {1, 1}, -- spriteFrame
+        world -- world (last parameter)
+    )
+    table.insert(self.npcManager.npcs, dadNPC)
+    
+    -- Spawn Mistress NPC
+    local mistressNPC = NPC:new(
+        2832 + 60, -- Slightly offset from dad
+        1152,
+        "assets/graphics/characters/mistress-duckie-sprite-sheet.png",
+        "mistress_route",
+        "Mistress",
+        0, -- movementType: stationary
+        0, -- moveDistance
+        0, -- moveSpeed
+        "down", -- facingDirection
+        {1, 1}, -- spriteFrame
+        world -- world (last parameter)
+    )
+    table.insert(self.npcManager.npcs, mistressNPC)
+    
+    self.routeNPCsSpawned = true
+    
+    -- Trigger DialogueRoute1 scene1
+    print("DEBUG: Starting DialogueRoute1 scene1")
+    self:startDialogueRoute(DialogueRoute1, "scene1")
+end
+
+function Game:startDialogueRoute(routeModule, sceneKey)
+    print("DEBUG: Starting dialogue route for " .. sceneKey)
+    
+    self.storyManager.isShowingDialogue = true
+    
+    self.storyManager.dialogueManager:startDialogueRoute(
+        routeModule,
+        sceneKey,
+        function()
+            -- On dialogue complete
+            print("DEBUG: Dialogue route " .. sceneKey .. " completed")
+            self.storyManager.isShowingDialogue = false
+        end,
+        function(choice)
+            -- On choice made
+            print("DEBUG: Choice made: " .. choice)
+            self:handleRouteChoice(routeModule, sceneKey, choice)
+        end
+    )
+end
+
+function Game:handleRouteChoice(routeModule, sceneKey, choice)
+    -- Route 1, Scene 1: ((Go with Dad)) or ((Find the last Ingredient))
+    if routeModule == DialogueRoute1 and sceneKey == "scene1" then
+        if choice == 1 then
+            -- Go with Dad - Trigger Route1 Scene2, then Ending 1
+            print("DEBUG: Choice 1 - Go with Dad")
+            self:startDialogueRoute(DialogueRoute1, "scene2")
+            -- After scene2, show ending 1
+            self.storyManager.dialogueManager.onComplete = function()
+                self:showEnding(1, "ENDING 1: LEAVING HOME")
+            end
+        else
+            -- Find the last Ingredient - Trigger Route2 Scene1
+            print("DEBUG: Choice 2 - Find the last Ingredient")
+            self:startDialogueRoute(DialogueRoute2, "scene1")
+        end
+    -- Route 2, Scene 1: ((Trust Father's Words)) or ((Ignore Him))
+    elseif routeModule == DialogueRoute2 and sceneKey == "scene1" then
+        if choice == 1 then
+            -- Trust Father's Words - Trigger Route2 Scene2, continue to end
+            print("DEBUG: Choice 1 - Trust Father's Words")
+            self:startDialogueRoute(DialogueRoute2, "scene2")
+            -- Continue through all scenes in Route2
+            self:continueRoute2Journey()
+        else
+            -- Ignore Him - Trigger Route3 Scene1, continue to end
+            print("DEBUG: Choice 2 - Ignore Him")
+            self:startDialogueRoute(DialogueRoute3, "scene1")
+            -- Continue through all scenes in Route3
+            self:continueRoute3Journey()
+        end
+    end
+end
+
+function Game:continueRoute2Journey()
+    -- After scene2, continue the Route2 story sequence
+    -- scene3 -> breadScene -> scene4 -> scene5 -> scene6 -> scene7 (Ending 2)
+    local sceneSequence = {"scene3", "breadScene", "scene4", "scene5", "scene6", "scene7"}
+    local currentIndex = 1
+    
+    local function playNextScene()
+        if currentIndex <= #sceneSequence then
+            local nextScene = sceneSequence[currentIndex]
+            currentIndex = currentIndex + 1
+            
+            self.storyManager.dialogueManager:startDialogueRoute(
+                DialogueRoute2,
+                nextScene,
+                function()
+                    if nextScene == "scene7" then
+                        -- Show Ending 2
+                        self:showEnding(2, "ENDING 2: THE FALSE CURE")
+                    else
+                        playNextScene()
+                    end
+                end,
+                nil
+            )
+        end
+    end
+    
+    -- Start the sequence after scene2 completes
+    self.storyManager.dialogueManager.onComplete = playNextScene
+end
+
+function Game:continueRoute3Journey()
+    -- Continue through Route3 scenes: scene2 -> scene3 -> scene4 -> scene5 (Ending 3)
+    local sceneSequence = {"scene2", "scene3", "scene4", "scene5"}
+    local currentIndex = 1
+    
+    local function playNextScene()
+        if currentIndex <= #sceneSequence then
+            local nextScene = sceneSequence[currentIndex]
+            currentIndex = currentIndex + 1
+            
+            self.storyManager.dialogueManager:startDialogueRoute(
+                DialogueRoute3,
+                nextScene,
+                function()
+                    if nextScene == "scene5" then
+                        -- Show Ending 3
+                        self:showEnding(3, "ENDING 3: THE TRUTH TOO LATE")
+                    else
+                        playNextScene()
+                    end
+                end,
+                nil
+            )
+        end
+    end
+    
+    -- Start the sequence after scene1 completes
+    self.storyManager.dialogueManager.onComplete = playNextScene
+end
+
+function Game:showEnding(endingNumber, endingTitle)
+    print("DEBUG: Showing ending " .. endingNumber .. ": " .. endingTitle)
+    
+    -- Stop all music
+    if gameMusic then gameMusic:stop() end
+    if houseMusic then houseMusic:stop() end
+    if ashMapMusic then ashMapMusic:stop() end
+    if whisperMapMusic then whisperMapMusic:stop() end
+    
+    -- Create and show ending screen
+    self.endingScreen = EndingScreen:new()
+    self.endingScreen:enter(endingNumber, endingTitle)
+    self.showingEnding = true
+    self.storyManager.isShowingDialogue = false
+end
+
 return Game
+

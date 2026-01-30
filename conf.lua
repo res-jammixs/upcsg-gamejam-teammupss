@@ -2,7 +2,7 @@ function love.conf(t)
     t.window.title = 'Featherless'
     t.window.width = 1024
     t.window.height = 768
-    t.console = true  -- Uncomment this line to enable console on Windows
+    -- t.console = true  -- Uncomment this line to enable console on Windows
     
     -- Ensure consistent rendering across different devices
     t.window.resizable = false  -- Prevent window resizing which can cause misalignment

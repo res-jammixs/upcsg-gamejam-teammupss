@@ -6,10 +6,16 @@ local ItemManager = {}
 
 function ItemManager:new()
     print("=== ITEM MANAGER INITIALIZED ===")
+    
+    -- Load item collection sound
+    local itemCollectedSound = love.audio.newSource('assets/sounds/sfx/item-collected.mp3', 'static')
+    itemCollectedSound:setVolume(0.4)
+    
     local self = {
         items = {},
         collectedItems = {}, -- Persists across maps (tracks by ID)
         completionTriggered = false, -- Track if completion message shown
+        itemCollectedSound = itemCollectedSound, -- Store the sound
         
         -- Simple notification system (matches game.lua UI style)
         notification = {
@@ -41,9 +47,7 @@ function ItemManager:new()
                 {id = "whisperweed_whisper_01", class = WhisperWeed, x = 58 * 16 * 3, y = 39 * 16 * 3},
             },
             mazeMap = {
-                -- Additional quest items
-                {id = "milkfish_maze_01", class = Milkfish, x = 1000, y = 800},
-                {id = "whisperweed_maze_01", class = WhisperWeed, x = 1200, y = 600},
+                {id = "milkfish_maze_01", class = Milkfish, x = 32 * 16 * 3, y = 40 * 16 * 3},
             }
         }
     }
@@ -111,8 +115,8 @@ function ItemManager:update(dt, playerCollider)
         local item = self.items[i]
         item:update(dt)
         
-        -- Auto-collect if player collides
-        if playerCollider then
+        -- Auto-collect if player collides (except Milkfish, which requires interaction)
+        if playerCollider and item.type ~= "milkfish" then
             local playerX, playerY = playerCollider:getPosition()
             if item:checkCollision(playerX, playerY) then
                 print("Item collision detected: " .. item.id .. " at position (" .. item.x .. ", " .. item.y .. ")")
@@ -188,9 +192,11 @@ function ItemManager:collectItem(item, index)
     item:collect()
     print("Called item:collect() method")
     
-    -- TODO: Play sound effect
-    -- local collectSound = love.audio.newSource('assets/sounds/sfx/collect.wav', 'static')
-    -- collectSound:play()
+    -- Play item collection sound
+    if self.itemCollectedSound then
+        self.itemCollectedSound:stop() -- Stop if already playing
+        self.itemCollectedSound:play()
+    end
     
     -- Remove from active items
     table.remove(self.items, index)
