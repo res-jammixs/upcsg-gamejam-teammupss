@@ -8,7 +8,7 @@ cam = camera()
 
 function MapManager:new()
     local self = {
-        currentMap = 'zoomedHouseMap', --original zoomedHouseMap
+        currentMap = 'zoomedHouseMap',
         currentMapObject = nil,
         world = nil,
         portals = {},
@@ -41,7 +41,7 @@ function MapManager:new()
 end
 
 function MapManager:init()
-    self:loadMap('zoomedHouseMap') --original zoomedHouseMap
+    self:loadMap('zoomedHouseMap')
 end
 
 function MapManager:loadMap(mapName)
@@ -170,16 +170,6 @@ function MapManager:checkPortalInteraction(playerX, playerY)
         end
     end
     return nil
-end
-
-function MapManager:getFirstSpawnPoint()
-    -- Returns the first portal's spawn point, or nil if no portals with spawn exist
-    for i, portal in ipairs(self.portals) do
-        if portal.spawnX and portal.spawnY then
-            return portal.spawnX, portal.spawnY
-        end
-    end
-    return nil, nil
 end
 
 function MapManager:update(dt)

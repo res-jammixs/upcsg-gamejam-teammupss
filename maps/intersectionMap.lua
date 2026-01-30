@@ -10,7 +10,7 @@ return {
   tilewidth = 16,
   tileheight = 16,
   nextlayerid = 14,
-  nextobjectid = 79,
+  nextobjectid = 80,
   properties = {},
   tilesets = {
     {
@@ -974,9 +974,9 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["targetMap"] = "maps/whisperMap.lua",
             ["spawnX"] = 2980,
-            ["spawnY"] = 650
+            ["spawnY"] = 650,
+            ["targetMap"] = "maps/whisperMap.lua"
           }
         },
         {
@@ -991,9 +991,26 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["targetMap"] = "maps/frontyardMap.lua",
             ["spawnX"] = 1490,
-            ["spawnY"] = 2210
+            ["spawnY"] = 2210,
+            ["targetMap"] = "maps/frontyardMap.lua"
+          }
+        },
+        {
+          id = 79,
+          name = "",
+          type = "",
+          shape = "rectangle",
+          x = 491.333,
+          y = 751.667,
+          width = 57.6667,
+          height = 15.3333,
+          rotation = 0,
+          visible = true,
+          properties = {
+            ["spawnX"] = 510,
+            ["spawnY"] = 60,
+            ["targetMap"] = "maps/mazeMap.lua"
           }
         }
       }
