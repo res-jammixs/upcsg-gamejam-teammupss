@@ -4,7 +4,7 @@ local Dialogues = {
         { character = "duckie", text = "Use WASD or Arrow Keys to move around." },
         { character = "duckie", text = "Hold the key to walk around the room." },
         { character = "duckie", text = "Press E to talk to characters and interact." },
-        { character = "duckie", text = "Press F to enter doors and portals." },
+        { character = "duckie", text = "Press E to enter doors and portals." },
         { character = "duckie", text = "Explore the room and interact with objects." },
         { character = "duckie", text = "Start by checking the sink." },
     },
@@ -164,7 +164,7 @@ local Dialogues = {
         { character = "rita", text = "If I remember, I'll come tell you. I promise." },
         { character = "duckie", text = "Alright! I think I met most of my neighbours already." },
         { character = "duckie", text = "I should probably go to my first destination." },
-    }
+    },
 
     scene9 = {
     { character = "duckie", text = "This place feels… quiet." },
