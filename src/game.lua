@@ -67,7 +67,7 @@ function Game:switchMusic(mapName)
         if not houseMusic then
             houseMusic = love.audio.newSource("assets/sounds/music/house-music.mp3", "stream")
             houseMusic:setLooping(true)
-            houseMusic:setVolume(0.05)
+            houseMusic:setVolume(0.06)
         end
         houseMusic:play()
         currentMusicTrack = "house"
@@ -116,6 +116,10 @@ function Game:init()
     
     -- Cache font for UI prompts
     self.uiFont = love.graphics.newFont("assets/fonts/VT323-Regular.ttf", 24)
+    
+    -- Load game-over sound effect
+    self.gameOverSound = love.audio.newSource("assets/sounds/sfx/game-over.mp3", "static")
+    self.gameOverSound:setVolume(0.3)
     
     -- Interaction cooldown
     self.isTransitioning = false
@@ -479,6 +483,11 @@ end
 
 function Game:handlePlayerDeath(enemy)
     self.isTransitioning = true
+    
+    -- Play game-over sound effect
+    if self.gameOverSound then
+        self.gameOverSound:play()
+    end
     
     -- Stop player movement sounds
     if self.player.walkingSound then
