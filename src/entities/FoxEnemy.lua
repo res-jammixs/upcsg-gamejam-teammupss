@@ -13,6 +13,11 @@ function FoxEnemy:new(x, y, patrolWidth, patrolHeight, movementAxis, facingDirec
     local sprite = love.graphics.newImage('assets/graphics/enemies/fox-sprite-sheet.png')
     sprite:setFilter('nearest', 'nearest')
     
+    -- Load fox sound
+    local foxSound = love.audio.newSource('assets/sounds/sfx/fox-sound.mp3', 'static')
+    foxSound:setVolume(0.3)
+    foxSound:setLooping(true)
+    
     -- Use exact same grid coordinates as BirdEnemy
     local gridLeft = anim8.newGrid(74, 62, sprite:getWidth(), sprite:getHeight(), 8, 1)    
     local gridRight = anim8.newGrid(78, 62, sprite:getWidth(), sprite:getHeight(), 1, 3)    
@@ -83,6 +88,10 @@ function FoxEnemy:new(x, y, patrolWidth, patrolHeight, movementAxis, facingDirec
     self.state = 'patrol' -- 'patrol', 'chase', 'return'
     self.world = world -- Store world reference for collision checking
     self.map = map -- Store map reference for collision checking
+    
+    -- Sound
+    self.foxSound = foxSound
+    self.hasPlayedSound = false -- Track if sound has been played
     
     -- Debug: check if world was passed
     if not self.world then
@@ -243,6 +252,11 @@ function FoxEnemy:update(dt, playerX, playerY)
         if self:isPlayerInVisionCone(playerX, playerY) then
             self.state = 'chase'
             self.chaseAnim = nil
+            
+            -- Play fox sound when detecting player
+            if self.foxSound and not self.foxSound:isPlaying() then
+                self.foxSound:play()
+            end
         else
             -- Move along patrol path
             local moveSpeed = self.speed / (self.movementAxis == 'horizontal' and self.patrolWidth or self.patrolHeight)
@@ -297,6 +311,10 @@ function FoxEnemy:update(dt, playerX, playerY)
             -- Lost player, return to patrol
             self.state = 'return'
             self.chaseAnim = self.currentAnim
+            -- Stop fox sound when losing player
+            if self.foxSound and self.foxSound:isPlaying() then
+                self.foxSound:stop()
+            end
         else
             -- Chase player
             local dx = playerX - self.x
@@ -385,6 +403,10 @@ function FoxEnemy:update(dt, playerX, playerY)
             self.x = self.targetPatrolPoint.x
             self.y = self.targetPatrolPoint.y
             self.state = 'patrol'
+            -- Stop fox sound when returning to patrol
+            if self.foxSound and self.foxSound:isPlaying() then
+                self.foxSound:stop()
+            end
             self.patrolProgress = self.targetPatrolPoint.progress
             -- Determine which direction to continue patrolling based on where we are on the line
             -- If we're closer to the left/top edge, move forward; if closer to right/bottom, move backward

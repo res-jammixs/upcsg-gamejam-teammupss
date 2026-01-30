@@ -13,6 +13,11 @@ function BirdEnemy:new(x, y, patrolRadius, allPatrolPoints, clockwise)
     local sprite = love.graphics.newImage('assets/graphics/enemies/owl-sprite-sheet.png')
     sprite:setFilter('nearest', 'nearest')
     
+    -- Load owl sound
+    local owlSound = love.audio.newSource('assets/sounds/sfx/owl-sound.mp3', 'static')
+    owlSound:setVolume(0.3)
+    owlSound:setLooping(true)
+    
     local gridLeft = anim8.newGrid(74, 62, sprite:getWidth(), sprite:getHeight(), 8, 1)    
     local gridRight = anim8.newGrid(78, 62, sprite:getWidth(), sprite:getHeight(), 1, 3)    
     
@@ -56,6 +61,10 @@ function BirdEnemy:new(x, y, patrolRadius, allPatrolPoints, clockwise)
         animations = animations,
         currentAnim = 'right',
         anim8 = anim8,
+        
+        -- Sound
+        owlSound = owlSound,
+        hasPlayedSound = false, -- Track if sound has been played this chase
         
         -- AI states
         detectionRadius = 200,
@@ -194,6 +203,11 @@ function BirdEnemy:update(dt, playerX, playerY)
         if self:isPlayerInVisionCone(playerX, playerY) then
             self.state = 'chase'
             self.chaseAnim = nil -- Reset chase animation memory
+            
+            -- Play owl sound when detecting player
+            if self.owlSound and not self.owlSound:isPlaying() then
+                self.owlSound:play()
+            end
         else
             -- Circular patrol movement
             self.patrolAngle = self.patrolAngle + self.patrolSpeed * dt
@@ -248,6 +262,10 @@ function BirdEnemy:update(dt, playerX, playerY)
         elseif distToPlayer > self.detectionRadius * 1.5 then
             -- Lost player, return to patrol
             self.state = 'return'
+            -- Stop owl sound when losing player
+            if self.owlSound and self.owlSound:isPlaying() then
+                self.owlSound:stop()
+            end
             self.chaseAnim = self.currentAnim -- Remember the animation from chase
             local nearestPatrol = self:findNearestPatrolPoint()
             local pointX, pointY, angle = self:findNearestPointOnCircle(nearestPatrol.x, nearestPatrol.y, nearestPatrol.radius)
