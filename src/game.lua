@@ -1,5 +1,6 @@
 local MapManager = require('src.managers.MapManager')   
 local EnemyManager = require('src.managers.EnemyManager')
+local NPCManager = require('src.managers.NPCManager')
 
 Game = {}
 local gameMusic = nil -- Store music reference globally
@@ -108,6 +109,11 @@ function Game:init()
     self.enemyManager:init()
     self.enemyManager:spawnEnemiesForMap(self.mapManager.currentMap, world)
     
+    -- Initialize NPC manager
+    self.npcManager = NPCManager:new()
+    self.npcManager:init()
+    self.npcManager:spawnNPCsForMap(self.mapManager.currentMap)
+    
     -- Cache font for UI prompts
     self.uiFont = love.graphics.newFont("assets/fonts/VT323-Regular.ttf", 24)
     
@@ -164,6 +170,9 @@ function Game:update(dt)
     -- Update enemies with player position
     self.enemyManager:update(dt, self.player.x, self.player.y)
     
+    -- Update NPCs
+    self.npcManager:update(dt)
+    
     self.player.x = self.player.collider:getX() - 19
     self.player.y = self.player.collider:getY() - 35
     
@@ -207,6 +216,7 @@ function Game:draw()
         cam:attach()
         self.mapManager:draw()
         self.enemyManager:draw()
+        self.npcManager:draw()
 
         love.graphics.push()
         love.graphics.scale(1, 1)
@@ -221,6 +231,7 @@ function Game:draw()
         -- Indoor maps don't use camera
         self.mapManager:draw()
         self.enemyManager:draw()
+        self.npcManager:draw()
         
         love.graphics.push()
         love.graphics.scale(1, 1)
@@ -234,8 +245,11 @@ function Game:draw()
         self:drawInteractionPrompt()
     end
     
-    -- Draw E prompt for dialogue trigger
-    self:drawDialoguePrompt()
+    -- Check if near an NPC and show interaction prompt
+    local nearbyNPC = self.npcManager:checkPlayerInteraction(self.player.x, self.player.y)
+    if nearbyNPC then
+        self:drawNPCInteractionPrompt(nearbyNPC)
+    end
 end
 
 function Game:keypressed(key)
@@ -260,7 +274,14 @@ function Game:keypressed(key)
     if key == 'f' or key == 'F' then
         self:interact()
     elseif key == 'e' or key == 'E' then
-        self:triggerDialogue()
+        -- Check if near an NPC first
+        local nearbyNPC = self.npcManager:checkPlayerInteraction(self.player.x, self.player.y)
+        if nearbyNPC then
+            self:triggerNPCDialogue(nearbyNPC)
+        else
+            -- Fallback to test dialogue
+            self:triggerDialogue()
+        end
     elseif key == 'space' then
         -- Test: Remove last enemy
         self.enemyManager:removeLastEnemy()
@@ -345,6 +366,9 @@ function Game:interact()
             -- Spawn enemies for the new map
             self.enemyManager:spawnEnemiesForMap(portal.targetMap, self.mapManager:getWorld())
             
+            -- Spawn NPCs for the new map
+            self.npcManager:spawnNPCsForMap(portal.targetMap)
+            
             -- Then fade out to reveal the new room
             transition:fadeOut(0.5)
             self.isTransitioning = false
@@ -357,6 +381,18 @@ function Game:triggerDialogue()
     local Dialogue = require('src.states.Dialogue')
     local dialogueState = Dialogue:new(self, "testDialogue")
     switchState(dialogueState)
+end
+
+function Game:triggerNPCDialogue(npc)
+    -- Switch to Dialogue state with NPC's dialogue
+    local Dialogue = require('src.states.Dialogue')
+    local dialogueState = Dialogue:new(self, npc.dialogueKey)
+    switchState(dialogueState)
+end
+
+function Game:drawNPCInteractionPrompt(npc)
+    love.graphics.setFont(self.uiFont)
+    self:drawTextWithShadow("Press E to talk to " .. npc.name, 50)
 end
 
 function Game:drawDialoguePrompt()
