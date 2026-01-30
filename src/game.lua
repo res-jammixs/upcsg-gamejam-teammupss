@@ -38,25 +38,24 @@ function Game:switchMusic(mapName)
     end
     
     -- Handle ashMap exclusive music
-    if cleanMapName == "ashMap" and currentMusicTrack ~= "ashMap" then
+    if cleanMapName == "ashMap" then
         if gameMusic then gameMusic:stop() end
         if houseMusic then houseMusic:stop() end
         if whisperMapMusic then whisperMapMusic:stop() end
+        
         if not ashMapMusic then
-            if love.filesystem.getInfo("assets/sounds/music/ashmap-music.mp3") then
-                local ok, src = pcall(love.audio.newSource, "assets/sounds/music/ashmap-music.mp3", "stream")
-                if ok and src then
-                    ashMapMusic = src
-                    ashMapMusic:setLooping(true)
-                    ashMapMusic:setVolume(0.01)
-                else
-                    print("Warning: Failed to load ashmap-music.mp3")
-                end
-            else
-                print("Warning: Missing ashmap-music.mp3")
-            end
+            ashMapMusic = love.audio.newSource("assets/sounds/music/ashmap-music.mp3", "stream")
+            ashMapMusic:setLooping(true)
+            ashMapMusic:setVolume(0.04)
+        else
+            -- Always ensure looping and volume are correct
+            ashMapMusic:setLooping(true)
+            ashMapMusic:setVolume(0.05)
         end
-        if ashMapMusic then ashMapMusic:play() end
+        
+        if not ashMapMusic:isPlaying() then
+            ashMapMusic:play()
+        end
         currentMusicTrack = "ashMap"
     -- Handle whisperMap exclusive music
     elseif cleanMapName == "whisperMap" and currentMusicTrack ~= "whisperMap" then
@@ -372,7 +371,7 @@ function Game:keypressed(key)
         return
     end
     
-    if key == 'f' or key == 'F' then
+    if key == 'e' or key == 'E' then
         -- Check for Milkfish interaction first (in maze map)
         if self.mapManager:getCurrentMap() == 'mazeMap' then
             local playerX = self.player.collider:getX()
@@ -382,22 +381,17 @@ function Game:keypressed(key)
                 return
             end
         end
-        -- Otherwise check for portal interaction
-        self:interact()
-    elseif key == 'e' or key == 'E' then
         -- Check if near an NPC
         local nearbyNPC = self.npcManager:checkPlayerInteraction(self.player.x, self.player.y)
         if nearbyNPC then
             self:triggerNPCDialogue(nearbyNPC)
             return
         end
-        
-        -- Check if near a portal
-        local portal = self:checkPortalInteraction()
-        if portal then
-            self:interact()
-            return
-        end
+        -- Otherwise check for portal interaction
+        self:interact()
+    elseif key == 'space' then
+        -- Test: Remove last enemy
+        self.enemyManager:removeLastEnemy()
     end
 end
 
@@ -419,15 +413,9 @@ function Game:drawTextWithShadow(text, y)
     love.graphics.printf(text, 0, y, screenWidth, "center")
 end
 
-function Game:drawInteractionPrompt(text)
+function Game:drawInteractionPrompt()
     love.graphics.setFont(self.uiFont)
-    self:drawTextWithShadow(text or "Press E to interact", 20)
-end
-
-function Game:drawItemCollectionPrompt(item)
-    love.graphics.setFont(self.uiFont)
-    local itemName = item.type:gsub("^%l", string.upper) -- Capitalize first letter
-    self:drawTextWithShadow("Press E to collect " .. itemName, 50)
+    self:drawTextWithShadow("Press E to interact", 20)
 end
 
 function Game:interact()
@@ -512,7 +500,7 @@ end
 
 function Game:drawMilkfishInteractionPrompt()
     love.graphics.setFont(self.uiFont)
-    self:drawTextWithShadow("Press F to get milkfish", 50)
+    self:drawTextWithShadow("Press E to get milkfish", 50)
 end
 
 function Game:findSafeRespawnPoint(baseX, baseY)
@@ -626,6 +614,9 @@ function Game:handlePlayerDeath(enemy)
         
         -- Reset all enemies to their initial positions
         self.enemyManager:resetAllToInitialPositions()
+        
+        -- Ensure music is at correct volume after respawn
+        self:switchMusic(currentMap)
         
         -- Fade back out to reveal the scene from respawn position
         transition:circularFadeOut(1.0, nil, respawnScreenX, respawnScreenY)

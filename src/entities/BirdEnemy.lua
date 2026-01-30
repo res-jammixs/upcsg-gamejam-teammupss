@@ -29,8 +29,8 @@ function BirdEnemy:new(x, y, patrolRadius, allPatrolPoints, clockwise)
     -- Determine patrol direction: clockwise (negative) or counter-clockwise (positive)
     local patrolSpeedValue = (clockwise == false) and 0.5 or -0.5
     
-    -- Start at top of circle (270 degrees = 3π/2 radians)
-    local startAngle = 3 * math.pi / 2
+    -- Start at a random angle on the circle to avoid all owls starting at the same position
+    local startAngle = math.random() * 2 * math.pi
     local startRadius = patrolRadius or 150
     local startX = x + math.cos(startAngle) * startRadius
     local startY = y + math.sin(startAngle) * startRadius
