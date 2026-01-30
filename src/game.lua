@@ -112,7 +112,7 @@ function Game:init()
     -- Initialize NPC manager
     self.npcManager = NPCManager:new()
     self.npcManager:init()
-    self.npcManager:spawnNPCsForMap(self.mapManager.currentMap)
+    self.npcManager:spawnNPCsForMap(self.mapManager.currentMap, self.mapManager:getWorld())
     
     -- Cache font for UI prompts
     self.uiFont = love.graphics.newFont("assets/fonts/VT323-Regular.ttf", 24)
@@ -367,7 +367,7 @@ function Game:interact()
             self.enemyManager:spawnEnemiesForMap(portal.targetMap, self.mapManager:getWorld())
             
             -- Spawn NPCs for the new map
-            self.npcManager:spawnNPCsForMap(portal.targetMap)
+            self.npcManager:spawnNPCsForMap(portal.targetMap, self.mapManager:getWorld())
             
             -- Then fade out to reveal the new room
             transition:fadeOut(0.5)

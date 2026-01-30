@@ -5,6 +5,7 @@ NPCManager = {}
 function NPCManager:new()
     local self = {
         npcs = {},
+        world = nil, -- Will be set when spawning
         -- Define NPC spawn locations for each map
         spawnLocations = {
             intersectionMap = {
@@ -63,9 +64,12 @@ function NPCManager:init()
     -- Initialize empty, NPCs will be spawned per map
 end
 
-function NPCManager:spawnNPCsForMap(mapName)
-    -- Clear existing NPCs
-    self.npcs = {}
+function NPCManager:spawnNPCsForMap(mapName, world)
+    -- Store world reference
+    self.world = world
+    
+    -- Clear existing NPCs (and their colliders)
+    self:clearAllNPCs()
     
     -- Clean up the map name
     local cleanMapName = mapName
@@ -89,7 +93,8 @@ function NPCManager:spawnNPCsForMap(mapName)
                 npcData.moveDistance,
                 npcData.moveSpeed,
                 npcData.facingDirection,
-                npcData.spriteFrame
+                npcData.spriteFrame,
+                world
             )
             table.insert(self.npcs, npc)
         end
@@ -122,6 +127,14 @@ end
 
 function NPCManager:getNPCCount()
     return #self.npcs
+end
+
+function NPCManager:clearAllNPCs()
+    -- Destroy all NPC colliders before clearing
+    for _, npc in ipairs(self.npcs) do
+        npc:destroy()
+    end
+    self.npcs = {}
 end
 
 return NPCManager

@@ -1,6 +1,6 @@
 NPC = {}
 
-function NPC:new(x, y, spritePath, dialogueKey, name, movementType, moveDistance, moveSpeed, facingDirection, spriteFrame)
+function NPC:new(x, y, spritePath, dialogueKey, name, movementType, moveDistance, moveSpeed, facingDirection, spriteFrame, world)
     local anim8 = require('lib.anim8')
     
     local self = {
@@ -25,7 +25,9 @@ function NPC:new(x, y, spritePath, dialogueKey, name, movementType, moveDistance
         moveSpeed = moveSpeed or 50,
         startX = x,
         startY = y,
-        direction = 1 -- 1 = right/down, -1 = left/up
+        direction = 1, -- 1 = right/down, -1 = left/up
+        -- Collision
+        collider = nil
     }
     
     -- Load sprite if provided
@@ -70,6 +72,17 @@ function NPC:new(x, y, spritePath, dialogueKey, name, movementType, moveDistance
         end
     end
     
+    -- Create collider if world is provided
+    if world then
+        -- Create a collider similar to the player (rectangle collider)
+        -- Using the sprite center as collider position
+        local colliderX = self.x + (self.width / 2)
+        local colliderY = self.y + (self.height / 2)
+        self.collider = world:newBSGRectangleCollider(colliderX, colliderY, self.width * 0.6, self.height * 0.5, 10)
+        self.collider:setFixedRotation(true)
+        self.collider:setType('static') -- NPCs don't move by physics, we control their position
+    end
+    
     return setmetatable(self, { __index = NPC })
 end
 
@@ -78,6 +91,13 @@ function NPC:update(dt)
     if self.movementType == 1 then -- Horizontal movement
         -- Move left or right
         self.x = self.x + (self.moveSpeed * self.direction * dt)
+        
+        -- Update collider position if it exists
+        if self.collider then
+            local colliderX = self.x + (self.width / 2)
+            local colliderY = self.y + (self.height / 2)
+            self.collider:setPosition(colliderX, colliderY)
+        end
         
         -- Check if we've moved too far from start position
         if self.direction == 1 then
@@ -133,6 +153,14 @@ function NPC:checkPlayerInteraction(playerX, playerY)
     )
     
     return dist < self.interactionRadius
+end
+
+function NPC:destroy()
+    -- Destroy the collider if it exists
+    if self.collider then
+        self.collider:destroy()
+        self.collider = nil
+    end
 end
 
 return NPC
