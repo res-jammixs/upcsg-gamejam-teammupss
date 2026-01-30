@@ -4,8 +4,8 @@ BirdEnemy = {}
 local HITBOX = {
     offsetX = 0,
     offsetY = 0,
-    width   = 74,
-    height  = 62
+    width   = 95,
+    height  = 78
 }
 
 function BirdEnemy:new(x, y, patrolRadius, allPatrolPoints, clockwise)
@@ -419,12 +419,12 @@ function BirdEnemy:draw()
     -- Draw afterimages first (behind owl)
     for _, afterimage in ipairs(self.afterimages) do
         love.graphics.setColor(1, 1, 1, afterimage.alpha * 0.5)
-        self.animations[afterimage.anim]:draw(self.sprite, afterimage.x, afterimage.y)
+        self.animations[afterimage.anim]:draw(self.sprite, afterimage.x, afterimage.y, nil, 1.2)
     end
     
     -- Reset color and draw owl
     love.graphics.setColor(1, 1, 1, 1)
-    self.animations[self.currentAnim]:draw(self.sprite, self.x, self.y)
+    self.animations[self.currentAnim]:draw(self.sprite, self.x, self.y, nil,  1.2)
     
     -- Debug: Draw owl hitbox
     love.graphics.setColor(1, 1, 0, 0.5)

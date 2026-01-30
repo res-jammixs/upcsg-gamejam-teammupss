@@ -1,4 +1,5 @@
 local BirdEnemy = require('src.entities.BirdEnemy')
+local FoxEnemy = require('src.entities.FoxEnemy')
 
 EnemyManager = {}
 
@@ -6,6 +7,7 @@ function EnemyManager:new()
     local self = {
         enemies = {},
         world = nil, -- Will be set when spawning
+        map = nil, -- Will be set when spawning
         spawnLocations = {
             whisperMap = {
                 birds = {
@@ -15,7 +17,19 @@ function EnemyManager:new()
                     {x = 21 * 16 * 3, y = 32 * 16 * 3, patrolRadius = 180, clockwise = false}, 
                     {x = 42 * 16 * 3, y = 33 * 16 * 3, patrolRadius = 180, clockwise = true}
                 }
+            },
+            ashMap = {
+                foxes = {
+                    {x = 9 * 16 * 3, y = 19 * 16 * 3, patrolWidth = 250, patrolHeight = 50, movementAxis = 'horizontal', chaseAreaWidth = 400, chaseAreaHeight = 300},
+                    {x = 24 * 16 * 3, y = 4 * 16 * 3, patrolWidth = 50, patrolHeight = 250, movementAxis = 'vertical', chaseAreaWidth = 250, chaseAreaHeight = 350},
+                    {x = 11 * 16 * 3, y = 41 * 16 * 3, patrolWidth = 200, patrolHeight = 50, movementAxis = 'horizontal', chaseAreaWidth = 300, chaseAreaHeight = 200},
+                    {x = 32 * 16 * 3, y = 17 * 16 * 3, patrolWidth = 50, patrolHeight = 250, movementAxis = 'vertical', chaseAreaWidth = 200, chaseAreaHeight = 500},
+                    {x = 37 * 16 * 3, y = 44 * 16 * 3, patrolWidth = 50, patrolHeight = 200, movementAxis = 'vertical', chaseAreaWidth = 200, chaseAreaHeight = 300},
+                    {x = 44 * 16 * 3, y = 22 * 16 * 3, patrolWidth = 250, patrolHeight = 50, movementAxis = 'horizontal', chaseAreaWidth = 600, chaseAreaHeight = 300},
+                    {x = 50 * 16 * 3, y = 34 * 16 * 3, patrolWidth = 50, patrolHeight = 250, movementAxis = 'vertical', chaseAreaWidth = 250, chaseAreaHeight = 350},
+                }
             }
+            
         }
     }
     
@@ -34,9 +48,18 @@ function EnemyManager:spawnBirdEnemy(x, y, patrolRadius, allPatrolPoints, clockw
     return enemy
 end
 
-function EnemyManager:spawnEnemiesForMap(mapName, world)
-    -- Store world reference
+function EnemyManager:spawnFoxEnemy(x, y, patrolWidth, patrolHeight, movementAxis, facingDirection, chaseAreaWidth, chaseAreaHeight)
+    local enemy = FoxEnemy:new(x, y, patrolWidth, patrolHeight, movementAxis, facingDirection, self.world, self.map, chaseAreaWidth, chaseAreaHeight)
+    enemy.initialX = x
+    enemy.initialY = y
+    table.insert(self.enemies, enemy)
+    return enemy
+end
+
+function EnemyManager:spawnEnemiesForMap(mapName, world, map)
+    -- Store world and map references
     self.world = world
+    self.map = map
     
     -- Clear existing enemies (and their colliders)
     self:clearAllEnemies()
@@ -66,6 +89,13 @@ function EnemyManager:spawnEnemiesForMap(mapName, world)
                 self:spawnBirdEnemy(loc.x, loc.y, loc.patrolRadius, allPatrolPoints, loc.clockwise)
             end
         end
+        
+        -- Spawn fox enemies
+        if self.spawnLocations[cleanMapName].foxes then
+            for _, loc in ipairs(self.spawnLocations[cleanMapName].foxes) do
+                self:spawnFoxEnemy(loc.x, loc.y, loc.patrolWidth, loc.patrolHeight, loc.movementAxis, loc.facingDirection, loc.chaseAreaWidth, loc.chaseAreaHeight)
+            end
+        end
     end
 end
 
@@ -88,7 +118,17 @@ function EnemyManager:resetAllToInitialPositions()
             enemy.x = enemy.spawnX
             enemy.y = enemy.spawnY
             enemy.state = 'patrol'
-            enemy.patrolAngle = 0
+            
+            -- Reset bird-specific properties
+            if enemy.patrolAngle then
+                enemy.patrolAngle = 0
+            end
+            
+            -- Reset fox-specific properties
+            if enemy.patrolProgress then
+                enemy.patrolProgress = 0.5
+                enemy.patrolDirection = 1
+            end
         end
     end
 end

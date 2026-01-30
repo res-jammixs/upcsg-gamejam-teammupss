@@ -34,8 +34,8 @@ function Player:new()
     local self = {
         x = 528, -- original 528
         y = 384, -- orignal 384 
-        -- original speed is 800
-        speed = 100,
+        -- original speed is 400
+        speed = 400,
         sprintSpeed = 1300,
         sprite = sprite,
         grid = grid,
