@@ -1,0 +1,138 @@
+NPC = {}
+
+function NPC:new(x, y, spritePath, dialogueKey, name, movementType, moveDistance, moveSpeed, facingDirection, spriteFrame)
+    local anim8 = require('lib.anim8')
+    
+    local self = {
+        x = x,
+        y = y,
+        width = 36,  -- Default NPC width
+        height = 54, -- Default NPC height
+        sprite = nil,
+        dialogueKey = dialogueKey or "testDialogue",
+        name = name or "NPC",
+        scale = 3, -- Sprite scale to match game scale
+        interactionRadius = 60, -- How close player needs to be to interact
+        animations = nil,
+        currentAnim = facingDirection or 'down', -- Set facing direction (down=row1, left=row2, right=row3, up=row4)
+        anim8 = anim8,
+        animTimer = 0,
+        animSpeed = 0.2,
+        spriteFrame = spriteFrame, -- {column, row} for specific frame
+        -- Movement properties
+        movementType = movementType or 0, -- 0 = stationary, 1 = horizontal
+        moveDistance = moveDistance or 150,
+        moveSpeed = moveSpeed or 50,
+        startX = x,
+        startY = y,
+        direction = 1 -- 1 = right/down, -1 = left/up
+    }
+    
+    -- Load sprite if provided
+    if spritePath then
+        local success, result = pcall(love.graphics.newImage, spritePath)
+        if success then
+            self.sprite = result
+            self.sprite:setFilter('nearest', 'nearest')
+            
+            -- Create animation grid (assuming same format as Duckie: 12x18 sprite frames)
+            local grid = anim8.newGrid(12, 18, self.sprite:getWidth(), self.sprite:getHeight())
+            
+            -- If specific frame is provided, use only that frame
+            if self.spriteFrame then
+                local col, row = self.spriteFrame[1], self.spriteFrame[2]
+                -- If col is a string like "1-4", animate the range; otherwise use single frame
+                if type(col) == "string" then
+                    self.animations = {
+                        custom = anim8.newAnimation(grid(col, row), self.animSpeed)
+                    }
+                else
+                    self.animations = {
+                        custom = anim8.newAnimation(grid(col, row), self.animSpeed)
+                    }
+                end
+                self.currentAnim = 'custom'
+            else
+                -- Create animations for all directions
+                self.animations = {
+                    down = anim8.newAnimation(grid('1-4', 1), self.animSpeed),   
+                    left = anim8.newAnimation(grid('1-4', 2), self.animSpeed),   
+                    right = anim8.newAnimation(grid('1-4', 3), self.animSpeed),   
+                    up = anim8.newAnimation(grid('1-4', 4), self.animSpeed)
+                }
+            end
+            
+            -- Update dimensions based on sprite
+            self.width = 12 * self.scale
+            self.height = 18 * self.scale
+        else
+            print("Warning: Could not load NPC sprite: " .. spritePath)
+        end
+    end
+    
+    return setmetatable(self, { __index = NPC })
+end
+
+function NPC:update(dt)
+    -- Handle movement if NPC has movement type
+    if self.movementType == 1 then -- Horizontal movement
+        -- Move left or right
+        self.x = self.x + (self.moveSpeed * self.direction * dt)
+        
+        -- Check if we've moved too far from start position
+        if self.direction == 1 then
+            self.currentAnim = 'right'
+            if self.x >= self.startX + self.moveDistance then
+                self.direction = -1
+            end
+        else
+            self.currentAnim = 'left'
+            if self.x <= self.startX - self.moveDistance then
+                self.direction = 1
+            end
+        end
+        
+        -- Update animation for moving NPCs
+        if self.animations then
+            self.animations[self.currentAnim]:update(dt)
+        end
+    elseif self.spriteFrame then
+        -- Stationary NPCs with custom frames should still animate
+        if self.animations and self.animations[self.currentAnim] then
+            self.animations[self.currentAnim]:update(dt)
+        end
+    end
+    -- Stationary NPCs without custom frames stay idle with no animation update
+end
+
+function NPC:draw()
+    if self.sprite and self.animations then
+        love.graphics.setColor(1, 1, 1, 1)
+        self.animations[self.currentAnim]:draw(self.sprite, self.x, self.y, nil, self.scale)
+    else
+        -- Draw a simple rectangle if no sprite
+        love.graphics.setColor(0.3, 0.6, 0.9, 1)
+        love.graphics.rectangle('fill', self.x, self.y, 36, 54)
+        love.graphics.setColor(1, 1, 1, 1)
+    end
+end
+
+function NPC:checkPlayerInteraction(playerX, playerY)
+    -- Calculate center of NPC
+    local npcCenterX = self.x + self.width / 2
+    local npcCenterY = self.y + self.height / 2
+    
+    -- Calculate center of player
+    local playerCenterX = playerX + 18 -- Player width is ~36
+    local playerCenterY = playerY + 27 -- Player height is ~54
+    
+    -- Calculate distance
+    local dist = math.sqrt(
+        (playerCenterX - npcCenterX) ^ 2 + 
+        (playerCenterY - npcCenterY) ^ 2
+    )
+    
+    return dist < self.interactionRadius
+end
+
+return NPC
