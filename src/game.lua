@@ -3,6 +3,7 @@ local EnemyManager = require('src.managers.EnemyManager')
 local NPCManager = require('src.managers.NPCManager')
 local ItemManager = require('src.managers.ItemManager')
 local InventoryUI = require('src.managers.InventoryUI')
+local SignageManager = require('src.util.SignageManager')
 
 Game = {}
 local gameMusic = nil -- Store music reference globally
@@ -152,6 +153,11 @@ function Game:init()
     self.inventoryUI = InventoryUI:new()
     self.inventoryUI:init()
     
+    -- Initialize signage manager
+    self.signageManager = SignageManager:new()
+    self.signageManager:init()
+    self.signageManager:loadSignsForMap(self.mapManager.currentMap, self.mapManager.currentMapObject)
+    
     -- Initialize global inventory if not exists
     if not _G.inventory then
         _G.inventory = {}
@@ -209,6 +215,12 @@ function Game:update(dt)
     -- Don't update player during transition
     if self.isTransitioning then
         return
+    end
+    
+    -- Update signage if active
+    if self.signageManager:isActive() then
+        self.signageManager:update(dt)
+        return -- Don't update other things while showing sign
     end
     
     self.player:update(dt)
@@ -351,6 +363,19 @@ function Game:draw()
             self:drawMilkfishInteractionPrompt()
         end
     end
+    
+    -- Check if near a sign and show interaction prompt
+    if not self.signageManager:isActive() then
+        local playerX = self.player.collider:getX()
+        local playerY = self.player.collider:getY()
+        local nearbySign = self.signageManager:checkSignInteraction(playerX, playerY)
+        if nearbySign then
+            self:drawSignInteractionPrompt()
+        end
+    end
+    
+    -- Draw signage overlay if active (should be on top of everything)
+    self.signageManager:draw()
 end
 
 function Game:keypressed(key)
@@ -384,7 +409,22 @@ function Game:keypressed(key)
         end
         -- Otherwise check for portal interaction
         self:interact()
+    elseif key == 'space' then
+        -- If showing a sign, close it with space
+        if self.signageManager:isActive() then
+            self.signageManager:closeSign()
+            return
+        end
     elseif key == 'e' or key == 'E' then
+        -- Check if near a sign
+        local playerX = self.player.collider:getX()
+        local playerY = self.player.collider:getY()
+        local nearbySign = self.signageManager:checkSignInteraction(playerX, playerY)
+        if nearbySign and nearbySign.text and nearbySign.text ~= "" then
+            self.signageManager:showSign(nearbySign.text)
+            return
+        end
+        
         -- Check if near an NPC
         local nearbyNPC = self.npcManager:checkPlayerInteraction(self.player.x, self.player.y)
         if nearbyNPC then
@@ -490,8 +530,9 @@ function Game:interact()
             
             -- Spawn items for the new map
             self.itemManager:spawnItemsForMap(portal.targetMap, self.mapManager:getWorld())
-            
-            -- Then fade out to reveal the new room
+                        -- Load signs for the new map
+            self.signageManager:loadSignsForMap(self.mapManager.currentMap, self.mapManager.currentMapObject)
+                        -- Then fade out to reveal the new room
             transition:fadeOut(0.5)
             self.isTransitioning = false
         end)
@@ -513,6 +554,11 @@ end
 function Game:drawMilkfishInteractionPrompt()
     love.graphics.setFont(self.uiFont)
     self:drawTextWithShadow("Press F to get milkfish", 50)
+end
+
+function Game:drawSignInteractionPrompt()
+    love.graphics.setFont(self.uiFont)
+    self:drawTextWithShadow("Press E to read sign", 50)
 end
 
 function Game:findSafeRespawnPoint(baseX, baseY)

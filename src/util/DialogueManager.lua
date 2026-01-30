@@ -80,6 +80,22 @@ function DialogueManager:startDialogue(dialogueKey, onComplete)
     self:loadDialogue(1)
 end
 
+function DialogueManager:showSignText(signText, onComplete)
+    -- Show a single piece of text (for signs) using the dialogue system
+    self._isActive = true
+    self.dialogues = {{character = "duckie", text = signText}}
+    self.currentDialogueIndex = 1
+    self.onComplete = onComplete
+    
+    -- Initialize fonts if not already loaded
+    if not self.font then
+        self:enter()
+    end
+    
+    -- Load the text
+    self:loadDialogue(1)
+end
+
 function DialogueManager:loadDialogue(index)
     if index > #self.dialogues then return end
     
