@@ -156,8 +156,8 @@ function NPC:checkPlayerInteraction(playerX, playerY)
 end
 
 function NPC:destroy()
-    -- Destroy the collider if it exists
-    if self.collider then
+    -- Destroy the collider if it exists and has a valid body
+    if self.collider and self.collider.body then
         self.collider:destroy()
         self.collider = nil
     end
