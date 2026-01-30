@@ -46,6 +46,7 @@ function BirdEnemy:new(x, y, patrolRadius, allPatrolPoints, clockwise)
         -- Circular patrol
         patrolRadius = startRadius,
         patrolAngle = startAngle, -- Start at top of circle
+        initialPatrolAngle = startAngle, -- Store initial angle for respawn
         patrolSpeed = patrolSpeedValue, -- Radians per second for patrol rotation
         
         -- Spawn and area limits
@@ -447,58 +448,6 @@ function BirdEnemy:draw()
     -- Reset color and draw owl
     love.graphics.setColor(1, 1, 1, 1)
     self.animations[self.currentAnim]:draw(self.sprite, self.x, self.y, nil,  1.2)
-    
-    -- Debug: Draw owl hitbox
-    love.graphics.setColor(1, 1, 0, 0.5)
-    love.graphics.rectangle("line", self.x + HITBOX.offsetX, self.y + HITBOX.offsetY, HITBOX.width, HITBOX.height)
-    love.graphics.setColor(1, 1, 1, 1)
-
-    -- Debug: Draw spawn point and chase area
-    love.graphics.setColor(0, 0, 1, 0.2)
-    love.graphics.circle("line", self.spawnX + 36, self.spawnY + 40, self.chaseAreaRadius)
-    
-    -- Debug: Draw patrol circle
-    love.graphics.setColor(0, 1, 1, 0.2)
-    love.graphics.circle("line", self.spawnX + 36, self.spawnY + 40, self.patrolRadius)
-    
-    -- Debug: Draw vision cone
-    love.graphics.setColor(1, 0, 0, 0.3)
-    local centerX = self.x + 36
-    local centerY = self.y + 40
-    
-    -- Vision cone follows movement direction (tangent to circle)
-    local facingAngle
-    if self.patrolSpeed < 0 then
-        facingAngle = self.patrolAngle - math.pi / 2  -- Clockwise
-    else
-        facingAngle = self.patrolAngle + math.pi / 2  -- Counter-clockwise
-    end
-    
-    -- Draw cone
-    local coneStart = facingAngle - self.visionConeAngle / 2
-    local coneEnd = facingAngle + self.visionConeAngle / 2
-    local segments = 20
-    
-    love.graphics.polygon("line", 
-        centerX, centerY,
-        centerX + math.cos(coneStart) * self.detectionRadius, centerY + math.sin(coneStart) * self.detectionRadius,
-        centerX + math.cos(coneEnd) * self.detectionRadius, centerY + math.sin(coneEnd) * self.detectionRadius
-    )
-    
-    -- Draw arc
-    for i = 0, segments do
-        local angle = coneStart + (coneEnd - coneStart) * (i / segments)
-        local x1 = centerX + math.cos(angle) * self.detectionRadius
-        local y1 = centerY + math.sin(angle) * self.detectionRadius
-        if i > 0 then
-            local prevAngle = coneStart + (coneEnd - coneStart) * ((i-1) / segments)
-            local x0 = centerX + math.cos(prevAngle) * self.detectionRadius
-            local y0 = centerY + math.sin(prevAngle) * self.detectionRadius
-            love.graphics.line(x0, y0, x1, y1)
-        end
-    end
-
-    love.graphics.setColor(1, 1, 1, 1)
 end
 
 function BirdEnemy:remove()

@@ -225,6 +225,37 @@ function Game:update(dt)
     self.player.x = self.player.collider:getX() - 19
     self.player.y = self.player.collider:getY() - 35
     
+    -- Check for collision with NPCs and block player movement
+    local collidedNPC = self.npcManager:checkPlayerCollision(self.player.x, self.player.y, 36, 54)
+    if collidedNPC then
+        -- Push player back from NPC (using NPC hitbox dimensions: 24x52 with offset 6,1)
+        local npcHitboxX = collidedNPC.x + 6
+        local npcHitboxY = collidedNPC.y + 1
+        local npcHitboxW = 24
+        local npcHitboxH = 52
+        
+        -- Calculate overlap and push player away
+        local playerCenterX = self.player.x + 18
+        local playerCenterY = self.player.y + 27
+        local npcCenterX = npcHitboxX + npcHitboxW / 2
+        local npcCenterY = npcHitboxY + npcHitboxH / 2
+        
+        local dx = playerCenterX - npcCenterX
+        local dy = playerCenterY - npcCenterY
+        local dist = math.sqrt(dx * dx + dy * dy)
+        
+        if dist > 0 then
+            -- Push player away from NPC
+            local pushDistance = 2
+            local pushX = (dx / dist) * pushDistance
+            local pushY = (dy / dist) * pushDistance
+            self.player.collider:setPosition(
+                self.player.collider:getX() + pushX,
+                self.player.collider:getY() + pushY
+            )
+        end
+    end
+    
     -- Check for collision with enemies (using sprite dimensions)
     local collidedEnemy = self.enemyManager:checkPlayerCollision(self.player.x, self.player.y, 36, 54)
     if collidedEnemy then
@@ -297,10 +328,15 @@ function Game:draw()
             local screenX = self.player.x - cam.x + love.graphics.getWidth() / 2
             local screenY = self.player.y - cam.y + love.graphics.getHeight() / 2
             
+            -- Calculate expand radius: as darkness fades (1.0 -> 0.0), light expands (1.0 -> 10.0)
+            local fadeProgress = 1.0 - self.mapManager.darknessFadeAmount -- 0.0 -> 1.0
+            local expandRadius = 1.0 + (fadeProgress * 9.0) -- 1.0 -> 10.0 (exponential expansion)
+            
             -- Set shader parameters (3 tiles = 16 * 3 = 48 pixels per tile at scale 3 = 144 pixels radius)
             self.mapManager.darknessShader:send("playerPos", {screenX, screenY})
             self.mapManager.darknessShader:send("lightRadius", 144) -- 3 tiles radius
             self.mapManager.darknessShader:send("darknessFade", self.mapManager.darknessFadeAmount)
+            self.mapManager.darknessShader:send("expandRadius", expandRadius)
             
             -- Draw the canvas with shader applied
             love.graphics.setShader(self.mapManager.darknessShader)
@@ -377,7 +413,7 @@ function Game:keypressed(key)
             local playerX = self.player.collider:getX()
             local playerY = self.player.collider:getY()
             if self.mapManager:checkMilkfishInteraction(playerX, playerY) then
-                self.mapManager:activateMilkfish()
+                self.mapManager:activateMilkfish(self.itemManager)
                 return
             end
         end

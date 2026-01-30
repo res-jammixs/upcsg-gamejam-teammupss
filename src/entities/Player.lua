@@ -32,8 +32,8 @@ function Player:new()
     sprintSound:setVolume(0.1)
     
     local self = {
-        x = 29 * 16 * 3, -- original 528
-        y = 40 * 16 * 3, -- orignal 384 
+        x = 528, -- original 528
+        y = 384, -- orignal 384 
         -- original speed is 400
         speed = 400,
         sprintSpeed = 1300,
@@ -167,14 +167,6 @@ function Player:draw()
     -- Reset color and draw player
     love.graphics.setColor(1, 1, 1, 1)
     self.animations[self.currentAnim]:draw(self.sprite, self.x, self.y, nil, 3)
-    
-    -- Debug: Draw player hitbox (collider is 37x30, offset from sprite)
-    if self.collider then
-        love.graphics.setColor(0, 1, 0, 0.5)
-        local hbX, hbY = self.collider:getPosition()
-        love.graphics.rectangle("line", hbX + HITBOX.offsetX, hbY + HITBOX.offsetY, HITBOX.width, HITBOX.height)
-        love.graphics.setColor(1, 1, 1, 1)
-    end
 end
 
 return Player

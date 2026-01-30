@@ -173,6 +173,16 @@ function NPCManager:checkPlayerInteraction(playerX, playerY)
     return nil
 end
 
+-- Check collision between player and any NPC (like enemy collision)
+function NPCManager:checkPlayerCollision(playerX, playerY, playerWidth, playerHeight)
+    for _, npc in ipairs(self.npcs) do
+        if npc:checkCollision(playerX, playerY, playerWidth, playerHeight) then
+            return npc
+        end
+    end
+    return nil
+end
+
 function NPCManager:getNPCCount()
     return #self.npcs
 end

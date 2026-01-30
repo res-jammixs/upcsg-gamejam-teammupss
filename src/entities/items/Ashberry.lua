@@ -59,10 +59,6 @@ function Ashberry:draw()
     if self.sprite and not self.removed then
         local drawY = self.y + self.bobOffset
         
-        -- Draw interaction hitbox (circle) - cyan
-        love.graphics.setColor(0, 1, 1, 0.3)
-        love.graphics.circle("line", self.x, drawY, self.hitboxRadius)
-        
         -- Draw sprite
         love.graphics.setColor(1, 1, 1, 1)
         love.graphics.draw(

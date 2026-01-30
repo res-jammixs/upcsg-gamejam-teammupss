@@ -120,8 +120,17 @@ function EnemyManager:resetAllToInitialPositions()
     -- Reset all enemies to their initial spawn positions
     for _, enemy in ipairs(self.enemies) do
         if enemy.spawnX and enemy.spawnY then
-            enemy.x = enemy.spawnX
-            enemy.y = enemy.spawnY
+            -- For bird enemies, calculate the position on the circle using initial angle
+            if enemy.initialPatrolAngle and enemy.patrolRadius then
+                enemy.patrolAngle = enemy.initialPatrolAngle
+                enemy.x = enemy.spawnX + math.cos(enemy.initialPatrolAngle) * enemy.patrolRadius
+                enemy.y = enemy.spawnY + math.sin(enemy.initialPatrolAngle) * enemy.patrolRadius
+            else
+                -- For other enemies (foxes), reset to spawn position directly
+                enemy.x = enemy.spawnX
+                enemy.y = enemy.spawnY
+            end
+            
             enemy.state = 'patrol'
             
             -- Stop enemy sounds if playing
@@ -130,11 +139,6 @@ function EnemyManager:resetAllToInitialPositions()
             end
             if enemy.foxSound and enemy.foxSound:isPlaying() then
                 enemy.foxSound:stop()
-            end
-            
-            -- Reset bird-specific properties
-            if enemy.patrolAngle then
-                enemy.patrolAngle = 0
             end
             
             -- Reset fox-specific properties
