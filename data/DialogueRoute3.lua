@@ -1,0 +1,70 @@
+local DialogueRoute3 = {
+    
+    scene1 = {
+    { character = "Ducky", text = "I don’t believe you." },
+    { character = "Father", text = "Ducky—" },
+    { character = "Ducky", text = "I won’t listen anymore." },
+    { character = "Father", text = "…Then do what you think is right." },
+    },
+
+scene2 = {
+    { character = "Ducky", text = "I got the milkfish." },
+    { character = "Ducky", text = "This time… no lies." },
+    { character = "Ducky", text = "This cure will work." },
+    },
+
+scene3 = {
+    { character = "Ducky", text = "Mom, I’m back." },
+    { character = "Ducky", text = "I made it for you." },
+    { character = "Mother", text = "…" },
+    { character = "Ducky", text = "Please…" },
+    { character = "Ducky", text = "Wake up soon." },
+    },
+
+scene4 = {
+    { character = "NPC", text = "Ducky?" },
+    { character = "Ducky", text = "You came back." },
+    { character = "NPC", text = "I remembered something about my mother." },
+    { character = "Ducky", text = "What is it?" },
+    { character = "NPC", text = "She got sick because of bread." },
+    { character = "Ducky", text = "Bread?" },
+    { character = "NPC", text = "Ducks can’t eat it." },
+    { character = "NPC", text = "It slowly destroys their health." },
+    { character = "Ducky", text = "…Then my father lied again." },
+    { character = "NPC", text = "I’m sorry." },
+    { character = "Ducky", text = "At least I didn’t listen to him." },
+    },
+
+scene5 = {
+    { character = "Ducky", text = "Mom…?" },
+    { character = "Ducky", text = "…Mom! Wake up!" },
+    { character = "Ducky", text = "Why…" },
+    { character = "Ducky", text = "Why aren’t you moving?!" },
+    { character = "Ducky", text = "No…" },
+    { character = "Ducky", text = "No… this can’t be happening!" },
+    { character = "Ducky", text = "I…" },
+    { character = "Ducky", text = "I did everything…" },
+    { character = "Ducky", text = "The journal…" },
+    { character = "Ducky", text = "The ingredients…" },
+    { character = "Ducky", text = "The cure…" },
+    { character = "Ducky", text = "I thought…" },
+    { character = "Ducky", text = "I knew…" },
+    { character = "Ducky", text = "It would save you…" },
+    { character = "Ducky", text = "And now…" },
+    { character = "Ducky", text = "You’re…" },
+    { character = "Ducky", text = "Gone…" },
+    { character = "Ducky", text = "It was all…" },
+    { character = "Ducky", text = "Lies…" },
+    { character = "Ducky", text = "Father…" },
+    { character = "Ducky", text = "He lied…" },
+    { character = "Ducky", text = "I was too late…" },
+    { character = "Ducky", text = "I…" },
+    { character = "Ducky", text = "I failed you…" },
+    { character = "Ducky", text = "I guess…" },
+    { character = "Ducky", text = "There was really…" },
+    { character = "Ducky", text = "Never a way to save you…" },
+    { character = "system", text = "THE END" },
+    { character = "system", text = "ENDING 3: THE TRUTH TOO LATE" },
+    },
+
+}
