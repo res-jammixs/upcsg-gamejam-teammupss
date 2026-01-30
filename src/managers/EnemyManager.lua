@@ -10,12 +10,17 @@ function EnemyManager:new()
         map = nil, -- Will be set when spawning
         spawnLocations = {
             whisperMap = {
-                birds = {
-                    {x = 47 * 16 * 3, y = 11 * 16 * 3, patrolRadius = 150, clockwise = true},  
-                    {x = 25 * 16 * 3, y = 8 * 16 * 3, patrolRadius = 150, clockwise = false}, 
-                    {x = 8 * 16 * 3, y = 18 * 16 * 3, patrolRadius = 180, clockwise = true}, 
-                    {x = 21 * 16 * 3, y = 32 * 16 * 3, patrolRadius = 180, clockwise = false}, 
-                    {x = 42 * 16 * 3, y = 33 * 16 * 3, patrolRadius = 180, clockwise = true}
+                birds = { -- 8 31
+                    {x = 47 * 16 * 3, y = 11 * 16 * 3, patrolRadius = 180, clockwise = true},  
+                    {x = 25 * 16 * 3, y = 8 * 16 * 3, patrolRadius = 180, clockwise = false}, 
+                    {x = 20 * 16 * 3, y = 22 * 16 * 3, patrolRadius = 180, clockwise = true}, 
+                    {x = 7 * 16 * 3, y = 17 * 16 * 3, patrolRadius = 180, clockwise = false}, 
+                    {x = 42 * 16 * 3, y = 33 * 16 * 3, patrolRadius = 180, clockwise = true},
+                    {x = 35 * 16 * 3, y = 23 * 16 * 3, patrolRadius = 180, clockwise = false},
+                    {x = 8 * 16 * 3, y = 31 * 16 * 3, patrolRadius = 180, clockwise = true}, 
+                    {x = 30 * 16 * 3, y = 44 * 16 * 3, patrolRadius = 180, clockwise = false},
+                    {x = 37 * 16 * 3, y = 2 * 16 * 3, patrolRadius = 180, clockwise = true},
+                    {x = 19 * 16 * 3, y = 34 * 16 * 3, patrolRadius = 180, clockwise = false}
                 }
             },
             ashMap = {
