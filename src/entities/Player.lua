@@ -32,8 +32,8 @@ function Player:new()
     sprintSound:setVolume(0.1)
     
     local self = {
-        x = 528, -- original 528
-        y = 384, -- orignal 384 
+        x = 29 * 16 * 3, -- original 528
+        y = 40 * 16 * 3, -- orignal 384 
         -- original speed is 400
         speed = 400,
         sprintSpeed = 1300,

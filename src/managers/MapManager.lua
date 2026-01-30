@@ -8,7 +8,7 @@ cam = camera()
 
 function MapManager:new()
     local self = {
-        currentMap = 'zoomedHouseMap', --original zoomedHouseMap
+        currentMap = 'mazeMap', --original zoomedHouseMap
         currentMapObject = nil,
         world = nil,
         portals = {},
@@ -93,7 +93,7 @@ function MapManager:init()
     local height = love.graphics.getHeight()
     self.darknessCanvas = love.graphics.newCanvas(width, height)
     
-    self:loadMap('zoomedHouseMap') --original zoomedHouseMap
+    self:loadMap('mazeMap') --original zoomedHouseMap
 end
 
 function MapManager:loadMap(mapName)

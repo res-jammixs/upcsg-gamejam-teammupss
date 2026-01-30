@@ -47,9 +47,7 @@ function ItemManager:new()
                 {id = "whisperweed_whisper_01", class = WhisperWeed, x = 58 * 16 * 3, y = 39 * 16 * 3},
             },
             mazeMap = {
-                -- Additional quest items
-                {id = "milkfish_maze_01", class = Milkfish, x = 1000, y = 800},
-                {id = "whisperweed_maze_01", class = WhisperWeed, x = 1200, y = 600},
+                {id = "milkfish_maze_01", class = Milkfish, x = 32 * 16 * 3, y = 40 * 16 * 3},
             }
         }
     }
@@ -117,8 +115,8 @@ function ItemManager:update(dt, playerCollider)
         local item = self.items[i]
         item:update(dt)
         
-        -- Auto-collect if player collides
-        if playerCollider then
+        -- Auto-collect if player collides (except Milkfish, which requires interaction)
+        if playerCollider and item.type ~= "milkfish" then
             local playerX, playerY = playerCollider:getPosition()
             if item:checkCollision(playerX, playerY) then
                 print("Item collision detected: " .. item.id .. " at position (" .. item.x .. ", " .. item.y .. ")")
