@@ -8,7 +8,7 @@ cam = camera()
 
 function MapManager:new()
     local self = {
-        currentMap = 'mazeMap', --original zoomedHouseMap
+        currentMap = 'zoomedHouseMap', --original zoomedHouseMap
         currentMapObject = nil,
         world = nil,
         portals = {},
@@ -46,7 +46,9 @@ function MapManager:new()
         darknessFadeTime = 0,
         darknessFadeDuration = 3.0,
         -- Milkfish object
-        milkfishObject = nil
+        milkfishObject = nil,
+        -- Milkfish collection state
+        milkfishCollected = false,
     }
     return setmetatable(self, { __index = MapManager })
 end
@@ -57,17 +59,21 @@ function MapManager:init()
         uniform vec2 playerPos;
         uniform float lightRadius;
         uniform float darknessFade; // 1.0 = full darkness, 0.0 = no darkness
+        uniform float expandRadius; // Expansion multiplier for light radius during fade
         
         vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords) {
             // Calculate distance from player position to current pixel
             float dist = distance(screen_coords, playerPos);
             
+            // Expand the light radius as darkness fades
+            float effectiveRadius = lightRadius * expandRadius;
+            
             // Create smooth transition from visible to dark
             // At 60% of radius = fully visible (alpha = 0)
             // At 100% of radius = fully dark (alpha = 1)
-            float visibleRadius = lightRadius * 0.6;
+            float visibleRadius = effectiveRadius * 0.6;
             float fadeStart = visibleRadius;
-            float fadeEnd = lightRadius;
+            float fadeEnd = effectiveRadius;
             
             // Calculate darkness alpha based on distance
             float alpha = 0.0;
@@ -93,7 +99,7 @@ function MapManager:init()
     local height = love.graphics.getHeight()
     self.darknessCanvas = love.graphics.newCanvas(width, height)
     
-    self:loadMap('mazeMap') --original zoomedHouseMap
+    self:loadMap('zoomedHouseMap') --original zoomedHouseMap
 end
 
 function MapManager:loadMap(mapName)
@@ -273,7 +279,7 @@ function MapManager:loadMilkfish()
 end
 
 function MapManager:checkMilkfishInteraction(playerX, playerY)
-    if not self.milkfishObject or self.currentMap ~= 'mazeMap' then
+    if not self.milkfishObject or self.currentMap ~= 'mazeMap' or self.milkfishCollected then
         return false
     end
     
@@ -289,8 +295,24 @@ function MapManager:checkMilkfishInteraction(playerX, playerY)
     return dist < interactionRange + (math.max(self.milkfishObject.width, self.milkfishObject.height) / 2)
 end
 
-function MapManager:activateMilkfish()
-    if self.currentMap == 'mazeMap' and not self.darknessFading and self.darknessActive then
+function MapManager:activateMilkfish(itemManager)
+    if self.currentMap == 'mazeMap' and not self.darknessFading and self.darknessActive and not self.milkfishCollected then
+        -- Mark as collected to prevent re-interaction
+        self.milkfishCollected = true
+        
+        -- Find and collect the milkfish item
+        if itemManager then
+            for i = #itemManager.items, 1, -1 do
+                local item = itemManager.items[i]
+                if item.type == "milkfish" then
+                    -- Collect the milkfish (adds to inventory, plays sound, shows notification)
+                    itemManager:collectItem(item, i)
+                    break
+                end
+            end
+        end
+        
+        -- Start the darkness fade out effect
         self.darknessFading = true
         self.darknessFadeTime = 0
     end
