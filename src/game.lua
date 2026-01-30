@@ -324,9 +324,12 @@ function Game:draw()
             -- Apply darkness shader only if darkness is still visible
             love.graphics.setCanvas()
             
-            -- Calculate player position in screen coordinates
-            local screenX = self.player.x - cam.x + love.graphics.getWidth() / 2
-            local screenY = self.player.y - cam.y + love.graphics.getHeight() / 2
+            -- Calculate player center position in screen coordinates
+            -- Player sprite is 12x18 scaled by 3 = 36x54, so center is at +18, +27
+            local playerCenterX = self.player.x + 18
+            local playerCenterY = self.player.y + 27
+            local screenX = playerCenterX - cam.x + love.graphics.getWidth() / 2
+            local screenY = playerCenterY - cam.y + love.graphics.getHeight() / 2
             
             -- Calculate expand radius: as darkness fades (1.0 -> 0.0), light expands (1.0 -> 10.0)
             local fadeProgress = 1.0 - self.mapManager.darknessFadeAmount -- 0.0 -> 1.0

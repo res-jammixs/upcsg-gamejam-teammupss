@@ -125,9 +125,18 @@ function MapManager:loadMap(mapName)
     
     -- Reset darkness state for maze map
     if cleanMapName == 'mazeMap' then
-        self.darknessActive = true
-        self.darknessFadeAmount = 1.0
-        self.darknessFading = false
+        -- Check if player already has milkfish - if so, map should be lit
+        if _G.inventory and _G.inventory.milkfish then
+            self.darknessActive = false
+            self.darknessFadeAmount = 0.0
+            self.darknessFading = false
+            self.milkfishCollected = true
+        else
+            self.darknessActive = true
+            self.darknessFadeAmount = 1.0
+            self.darknessFading = false
+            self.milkfishCollected = false
+        end
         self.darknessFadeTime = 0
     end
     -- Find index of Fog2 (if present) so we can draw it above the player
