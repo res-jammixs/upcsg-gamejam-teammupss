@@ -11,6 +11,11 @@ function MainMenu:enter()
     -- Initialize manager
     manager = MainMenuManager:new()
     
+    -- Reset global inventory when entering main menu
+    if _G.inventory then
+        _G.inventory = nil
+    end
+    
     -- Load fonts
     fontTitle = love.graphics.newFont("assets/fonts/VT323-Regular.ttf", 90)
     fontMenu = love.graphics.newFont("assets/fonts/VT323-Regular.ttf", 52)

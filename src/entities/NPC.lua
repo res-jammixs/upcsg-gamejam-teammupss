@@ -165,16 +165,10 @@ function NPC:draw()
 end
 
 function NPC:checkPlayerInteraction(playerX, playerY)
-    -- Use exact player hitbox dimensions from Player.lua
-    -- Player hitbox: width=37, height=51, offsetX=-19, offsetY=-35
-    local playerHitboxX = playerX - 19
-    local playerHitboxY = playerY - 35
-    local playerHitboxW = 37
-    local playerHitboxH = 51
-    
-    -- Calculate center of player hitbox
-    local playerCenterX = playerHitboxX + playerHitboxW / 2
-    local playerCenterY = playerHitboxY + playerHitboxH / 2
+    -- playerX, playerY is the sprite position
+    -- Player collider center is at sprite position + (19, 35) based on offset
+    local playerColliderCenterX = playerX + 19
+    local playerColliderCenterY = playerY + 35
     
     -- Calculate center of NPC
     local npcCenterX = self.x + self.width / 2
@@ -182,8 +176,8 @@ function NPC:checkPlayerInteraction(playerX, playerY)
     
     -- Calculate distance
     local dist = math.sqrt(
-        (playerCenterX - npcCenterX) ^ 2 + 
-        (playerCenterY - npcCenterY) ^ 2
+        (playerColliderCenterX - npcCenterX) ^ 2 + 
+        (playerColliderCenterY - npcCenterY) ^ 2
     )
     
     return dist < self.interactionRadius

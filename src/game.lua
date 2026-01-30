@@ -1,6 +1,8 @@
 local MapManager = require('src.managers.MapManager')   
 local EnemyManager = require('src.managers.EnemyManager')
 local NPCManager = require('src.managers.NPCManager')
+local ItemManager = require('src.managers.ItemManager')
+local InventoryUI = require('src.managers.InventoryUI')
 
 Game = {}
 local gameMusic = nil -- Store music reference globally
@@ -41,11 +43,20 @@ function Game:switchMusic(mapName)
         if houseMusic then houseMusic:stop() end
         if whisperMapMusic then whisperMapMusic:stop() end
         if not ashMapMusic then
-            ashMapMusic = love.audio.newSource("assets/sounds/music/ashmap-music.mp3", "stream")
-            ashMapMusic:setLooping(true)
-            ashMapMusic:setVolume(0.01)
+            if love.filesystem.getInfo("assets/sounds/music/ashmap-music.mp3") then
+                local ok, src = pcall(love.audio.newSource, "assets/sounds/music/ashmap-music.mp3", "stream")
+                if ok and src then
+                    ashMapMusic = src
+                    ashMapMusic:setLooping(true)
+                    ashMapMusic:setVolume(0.01)
+                else
+                    print("Warning: Failed to load ashmap-music.mp3")
+                end
+            else
+                print("Warning: Missing ashmap-music.mp3")
+            end
         end
-        ashMapMusic:play()
+        if ashMapMusic then ashMapMusic:play() end
         currentMusicTrack = "ashMap"
     -- Handle whisperMap exclusive music
     elseif cleanMapName == "whisperMap" and currentMusicTrack ~= "whisperMap" then
@@ -53,11 +64,20 @@ function Game:switchMusic(mapName)
         if houseMusic then houseMusic:stop() end
         if ashMapMusic then ashMapMusic:stop() end
         if not whisperMapMusic then
-            whisperMapMusic = love.audio.newSource("assets/sounds/music/whispermap-music.mp3", "stream")
-            whisperMapMusic:setLooping(true)
-            whisperMapMusic:setVolume(0.05)
+            if love.filesystem.getInfo("assets/sounds/music/whispermap-music.mp3") then
+                local ok, src = pcall(love.audio.newSource, "assets/sounds/music/whispermap-music.mp3", "stream")
+                if ok and src then
+                    whisperMapMusic = src
+                    whisperMapMusic:setLooping(true)
+                    whisperMapMusic:setVolume(0.05)
+                else
+                    print("Warning: Failed to load whispermap-music.mp3")
+                end
+            else
+                print("Warning: Missing whispermap-music.mp3")
+            end
         end
-        whisperMapMusic:play()
+        if whisperMapMusic then whisperMapMusic:play() end
         currentMusicTrack = "whisperMap"
     -- Switch music if needed for indoor maps
     elseif isIndoor and currentMusicTrack ~= "house" then
@@ -77,11 +97,20 @@ function Game:switchMusic(mapName)
         if ashMapMusic then ashMapMusic:stop() end
         if whisperMapMusic then whisperMapMusic:stop() end
         if not gameMusic then
-            gameMusic = love.audio.newSource("assets/sounds/music/game-start.mp3", "stream")
-            gameMusic:setLooping(true)
-            gameMusic:setVolume(0.05)
+            if love.filesystem.getInfo("assets/sounds/music/game-start.mp3") then
+                local ok, src = pcall(love.audio.newSource, "assets/sounds/music/game-start.mp3", "stream")
+                if ok and src then
+                    gameMusic = src
+                    gameMusic:setLooping(true)
+                    gameMusic:setVolume(0.05)
+                else
+                    print("Warning: Failed to load game-start.mp3")
+                end
+            else
+                print("Warning: Missing game-start.mp3")
+            end
         end
-        gameMusic:play()
+        if gameMusic then gameMusic:play() end
         currentMusicTrack = "game"
     end
 end
@@ -113,6 +142,20 @@ function Game:init()
     self.npcManager = NPCManager:new()
     self.npcManager:init()
     self.npcManager:spawnNPCsForMap(self.mapManager.currentMap, self.mapManager:getWorld())
+    
+    -- Initialize item manager
+    self.itemManager = ItemManager:new()
+    self.itemManager:init()
+    self.itemManager:spawnItemsForMap(self.mapManager.currentMap, self.mapManager:getWorld())
+    
+    -- Initialize inventory UI
+    self.inventoryUI = InventoryUI:new()
+    self.inventoryUI:init()
+    
+    -- Initialize global inventory if not exists
+    if not _G.inventory then
+        _G.inventory = {}
+    end
     
     -- Cache font for UI prompts
     self.uiFont = love.graphics.newFont("assets/fonts/VT323-Regular.ttf", 24)
@@ -177,6 +220,9 @@ function Game:update(dt)
     -- Update NPCs (pass player collider for pushing)
     self.npcManager:update(dt, self.player.collider)
     
+    -- Update items (animations and collision)
+    self.itemManager:update(dt, self.player.collider)
+    
     self.player.x = self.player.collider:getX() - 19
     self.player.y = self.player.collider:getY() - 35
     
@@ -235,6 +281,9 @@ function Game:draw()
         love.graphics.scale(1, 1)
         self.player:draw()
         love.graphics.pop()
+        
+        -- Draw items (before fog/above layers)
+        self.itemManager:draw()
 
         -- Draw layers that should appear above the player (fog, overhangs, etc.)
         self.mapManager:drawAbovePlayer()
@@ -268,6 +317,7 @@ function Game:draw()
         self.mapManager:draw()
         self.enemyManager:draw()
         self.npcManager:draw()
+        self.itemManager:draw()
         
         love.graphics.push()
         love.graphics.scale(1, 1)
@@ -275,10 +325,16 @@ function Game:draw()
         love.graphics.pop()
     end
     
+    -- Draw inventory UI (always visible, regardless of indoor/outdoor)
+    self.inventoryUI:draw()
+    
+    -- Draw item collection notifications (always visible, regardless of indoor/outdoor)
+    self.itemManager:drawNotification()
+    
     -- Show interaction prompt when near a portal
     local portal = self:checkPortalInteraction()
     if portal then
-        self:drawInteractionPrompt()
+        self:drawInteractionPrompt("Press E to enter")
     end
     
     -- Check if near an NPC and show interaction prompt
@@ -333,10 +389,15 @@ function Game:keypressed(key)
         local nearbyNPC = self.npcManager:checkPlayerInteraction(self.player.x, self.player.y)
         if nearbyNPC then
             self:triggerNPCDialogue(nearbyNPC)
+            return
         end
-    elseif key == 'space' then
-        -- Test: Remove last enemy
-        self.enemyManager:removeLastEnemy()
+        
+        -- Check if near a portal
+        local portal = self:checkPortalInteraction()
+        if portal then
+            self:interact()
+            return
+        end
     end
 end
 
@@ -358,9 +419,15 @@ function Game:drawTextWithShadow(text, y)
     love.graphics.printf(text, 0, y, screenWidth, "center")
 end
 
-function Game:drawInteractionPrompt()
+function Game:drawInteractionPrompt(text)
     love.graphics.setFont(self.uiFont)
-    self:drawTextWithShadow("Press F to interact", 20)
+    self:drawTextWithShadow(text or "Press E to interact", 20)
+end
+
+function Game:drawItemCollectionPrompt(item)
+    love.graphics.setFont(self.uiFont)
+    local itemName = item.type:gsub("^%l", string.upper) -- Capitalize first letter
+    self:drawTextWithShadow("Press E to collect " .. itemName, 50)
 end
 
 function Game:interact()
@@ -420,6 +487,9 @@ function Game:interact()
             
             -- Spawn NPCs for the new map
             self.npcManager:spawnNPCsForMap(portal.targetMap, self.mapManager:getWorld())
+            
+            -- Spawn items for the new map
+            self.itemManager:spawnItemsForMap(portal.targetMap, self.mapManager:getWorld())
             
             -- Then fade out to reveal the new room
             transition:fadeOut(0.5)
