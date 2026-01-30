@@ -4,6 +4,8 @@ local EnemyManager = require('src.managers.EnemyManager')
 Game = {}
 local gameMusic = nil -- Store music reference globally
 local houseMusic = nil -- Store house music reference
+local ashMapMusic = nil -- Store ashMap music reference
+local whisperMapMusic = nil -- Store whisperMap music reference
 local currentMusicTrack = nil -- Track which music is currently playing
 
 function Game:switchMusic(mapName)
@@ -32,9 +34,35 @@ function Game:switchMusic(mapName)
         end
     end
     
-    -- Switch music if needed
-    if isIndoor and currentMusicTrack ~= "house" then
+    -- Handle ashMap exclusive music
+    if cleanMapName == "ashMap" and currentMusicTrack ~= "ashMap" then
         if gameMusic then gameMusic:stop() end
+        if houseMusic then houseMusic:stop() end
+        if whisperMapMusic then whisperMapMusic:stop() end
+        if not ashMapMusic then
+            ashMapMusic = love.audio.newSource("assets/sounds/music/ashmap-music.mp3", "stream")
+            ashMapMusic:setLooping(true)
+            ashMapMusic:setVolume(0.01)
+        end
+        ashMapMusic:play()
+        currentMusicTrack = "ashMap"
+    -- Handle whisperMap exclusive music
+    elseif cleanMapName == "whisperMap" and currentMusicTrack ~= "whisperMap" then
+        if gameMusic then gameMusic:stop() end
+        if houseMusic then houseMusic:stop() end
+        if ashMapMusic then ashMapMusic:stop() end
+        if not whisperMapMusic then
+            whisperMapMusic = love.audio.newSource("assets/sounds/music/whispermap-music.mp3", "stream")
+            whisperMapMusic:setLooping(true)
+            whisperMapMusic:setVolume(0.05)
+        end
+        whisperMapMusic:play()
+        currentMusicTrack = "whisperMap"
+    -- Switch music if needed for indoor maps
+    elseif isIndoor and currentMusicTrack ~= "house" then
+        if gameMusic then gameMusic:stop() end
+        if ashMapMusic then ashMapMusic:stop() end
+        if whisperMapMusic then whisperMapMusic:stop() end
         if not houseMusic then
             houseMusic = love.audio.newSource("assets/sounds/music/house-music.mp3", "stream")
             houseMusic:setLooping(true)
@@ -42,8 +70,11 @@ function Game:switchMusic(mapName)
         end
         houseMusic:play()
         currentMusicTrack = "house"
-    elseif not isIndoor and currentMusicTrack ~= "game" then
+    -- Switch music for general outdoor maps
+    elseif not isIndoor and cleanMapName ~= "ashMap" and cleanMapName ~= "whisperMap" and currentMusicTrack ~= "game" then
         if houseMusic then houseMusic:stop() end
+        if ashMapMusic then ashMapMusic:stop() end
+        if whisperMapMusic then whisperMapMusic:stop() end
         if not gameMusic then
             gameMusic = love.audio.newSource("assets/sounds/music/game-start.mp3", "stream")
             gameMusic:setLooping(true)
@@ -93,6 +124,16 @@ function Game:init()
         houseMusic:stop()
         houseMusic:release()
         houseMusic = nil
+    end
+    if ashMapMusic then
+        ashMapMusic:stop()
+        ashMapMusic:release()
+        ashMapMusic = nil
+    end
+    if whisperMapMusic then
+        whisperMapMusic:stop()
+        whisperMapMusic:release()
+        whisperMapMusic = nil
     end
     
     -- Start with appropriate music for starting map (houseMap is indoor)
