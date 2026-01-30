@@ -44,13 +44,30 @@ function DialogueManager:enter()
     self.font = love.graphics.newFont("assets/fonts/VT323-Regular.ttf", 28)
     self.smallFont = love.graphics.newFont("assets/fonts/VT323-Regular.ttf", 18)
     
+    -- Map character names to their dialogue box file names (case-sensitive)
+    local characterFileMap = {
+        duckie = "duckie-dialogue-box.png",
+        mama = "mama-dialogue-box.png",
+        papa = "papa-dialogue-box.png",
+        mistress = "mistress-dialogue-box.png",
+        beaky = "beaky-dialogue-box.png",
+        flappy = "flappy-dialogue-box.png",
+        mrfeather = "MrFeather-dialogue-box.png",
+        waddle = "waddle-dialogue-box.png",
+        mrandy = "Mr.Andy-dialogue-box.png",
+        shadyduck = "ShadyDuck-dialogue-box.png",
+        kurt = "kurt-dialogue-box.png",
+        rita = "Rita-dialogue-box.png"
+    }
+    
     -- Load dialogue boxes for all characters
-    local characters = {"duckie", "mama", "papa", "mistress"}
-    for _, characterName in ipairs(characters) do
-        local boxPath = "assets/graphics/dialogue box/" .. characterName .. "-dialogue-box.png"
+    for characterName, fileName in pairs(characterFileMap) do
+        local boxPath = "assets/graphics/dialogue box/" .. fileName
         local success, result = pcall(love.graphics.newImage, boxPath)
         if success then
             self.dialogueBoxImages[characterName] = result
+        else
+            print("Warning: Could not load dialogue box for " .. characterName .. " at " .. boxPath)
         end
     end
     
@@ -158,9 +175,19 @@ function DialogueManager:draw()
     local rightMargin = 80 -- Right margin to prevent text overflow
     local textWidth = (self.currentDialogueBox:getWidth() * self.dialogueBoxScale) - (self.textPadding * 2) - self.textOffsetX - rightMargin
     
+    -- Ensure textWidth is valid
+    if textWidth < 10 then
+        textWidth = 100
+    end
+    
     love.graphics.setFont(self.font)
     love.graphics.setColor(0, 0, 0, 1)
-    love.graphics.printf(self.displayedText, textX, textY, textWidth, "left")
+    
+    -- Safe text rendering with error handling
+    local displayText = self.displayedText or ""
+    pcall(function()
+        love.graphics.printf(displayText, textX, textY, textWidth, "left")
+    end)
     
     -- Draw continue indicator
     if self.isTextComplete then
@@ -172,7 +199,9 @@ function DialogueManager:draw()
         local pulse = (math.sin(love.timer.getTime() * 3) + 1) / 2
         
         love.graphics.setColor(0, 0, 0, 0.4 + pulse * 0.6)
-        love.graphics.print(indicatorText, indicatorX, indicatorY)
+        pcall(function()
+            love.graphics.print(indicatorText, indicatorX, indicatorY)
+        end)
     end
     
     love.graphics.setColor(1, 1, 1, 1)

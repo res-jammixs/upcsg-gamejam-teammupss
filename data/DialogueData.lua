@@ -4,7 +4,7 @@ local Dialogues = {
         { character = "duckie", text = "Use WASD or Arrow Keys to move around." },
         { character = "duckie", text = "Hold the key to walk around the room." },
         { character = "duckie", text = "Press E to talk to characters and interact." },
-        { character = "duckie", text = "Press F to enter doors and portals." },
+        { character = "duckie", text = "Press E to enter doors and portals." },
         { character = "duckie", text = "Explore the room and interact with objects." },
         { character = "duckie", text = "Start by checking the sink." },
     },
@@ -43,13 +43,12 @@ local Dialogues = {
     },
     
     scene5 = {
-    { character = "duckie", text = "Here you go, Mom. You should eat." },
-    { character = "duckie", text = "Dad said this will help slow the sickness." },
-    { character = "duckie", text = "(mom eats)" },
-    { character = "duckie", text = "Do you feel any better, Mom?" },
-    { character = "duckie", text = "Dad said the curse gets worse over time." },
-    { character = "duckie", text = "That’s why he left…" },
-    { character = "duckie", text = "To find a way to break it." },
+    { character = "duckie", text = "I'm really sorry Mom that this happened to us." },
+    { character = "duckie", text = "Dad hasn't came home yet." },
+    { character = "duckie", text = "I'm really getting worried." },
+    { character = "duckie", text = "This isn't getting any better isn't it?" },
+    { character = "duckie", text = "Gosh... what am I saying" },
+    { character = "duckie", text = "I should probably go outside to take a breather for a while." },
     },
 
     scene6 = {
@@ -63,7 +62,7 @@ local Dialogues = {
     { character = "duckie", text = "Father is gone." },
     { character = "duckie", text = "When I look at the water, I remember those days." },
     { character = "duckie", text = "And it hurts too much." },
-    { character = "duckie", text = "I don’t think I can touch the lake anymore." },
+    { character = "duckie", text = "I don’t think I can touch the lake anymore nor any form of water." },
     },
 
     scene7 = {
@@ -81,23 +80,23 @@ local Dialogues = {
     { character = "duckie", text = "Dad said the stew would slowly weaken the curse…" },
     { character = "duckie", text = "One ingredient at a time." },
     { character = "duckie", text = "..." },
-    { character = "Journal", text = "To my child…" },
-    { character = "Journal", text = "The curse is not the end." },
-    { character = "Journal", text = "Follow these steps to craft the Fish Stew." },
-    { character = "Journal", text = "It is the only cure." },
+    { character = "papa", text = "To my child…" },
+    { character = "papa", text = "The curse is not the end." },
+    { character = "papa", text = "Follow these steps to craft the Fish Stew." },
+    { character = "papa", text = "It is the only cure." },
 
-    { character = "Journal", text = "Step 1: Whisper Weed." },
-    { character = "Journal", text = "Found in the Whisper Willows." },
-    { character = "Journal", text = "Do not be seen by the Sunken Owls." },
-    { character = "Journal", text = "Do not be heard." },
+    { character = "papa", text = "Step 1: Whisper Weed." },
+    { character = "papa", text = "Found in the Whisper Willows." },
+    { character = "papa", text = "Do not be seen by the Sunken Owls." },
+    { character = "papa", text = "Do not be heard." },
 
-    { character = "Journal", text = "Step 2: Ashroot Bulb." },
-    { character = "Journal", text = "Scattered across the Ash Lands." },
-    { character = "Journal", text = "Beware the Fiery Fox." },
+    { character = "papa", text = "Step 2: Ashroot Bulb." },
+    { character = "papa", text = "Scattered across the Ash Lands." },
+    { character = "papa", text = "Beware the Fiery Fox." },
 
-    { character = "Journal", text = "Final Step: The Milkfish." },
-    { character = "Journal", text = "Hidden deep beneath the hill lies the lake that contains it." },
-    { character = "Journal", text = "The cure is almost complete." },
+    { character = "papa", text = "Final Step: The Milkfish." },
+    { character = "papa", text = "Hidden deep beneath the hill lies the lake that contains it." },
+    { character = "papa", text = "The cure is almost complete." },
     { character = "duckie", text = "..." },
 
     { character = "duckie", text = "He left to gather them himself…" },
@@ -164,7 +163,7 @@ local Dialogues = {
         { character = "rita", text = "If I remember, I'll come tell you. I promise." },
         { character = "duckie", text = "Alright! I think I met most of my neighbours already." },
         { character = "duckie", text = "I should probably go to my first destination." },
-    }
+    },
 
     scene9 = {
     { character = "duckie", text = "This place feels… quiet." },

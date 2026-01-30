@@ -13,6 +13,7 @@ function MapManager:new()
         world = nil,
         portals = {},
         walls = {},
+        objectiveItems = {},
         -- Classify maps as indoor or outdoor
         indoorMaps = {
             "zoomedHouseMap",
@@ -140,6 +141,9 @@ function MapManager:loadMap(mapName)
     
     -- Load portals
     self:loadPortals()
+    
+    -- Load objective items
+    self:loadObjectiveItems()
     
     -- Load Milkfish object for maze map
     self:loadMilkfish()
@@ -293,6 +297,90 @@ function MapManager:activateMilkfish()
     if self.currentMap == 'mazeMap' and not self.darknessFading and self.darknessActive then
         self.darknessFading = true
         self.darknessFadeTime = 0
+    end
+end
+
+function MapManager:loadObjectiveItems()
+    self.objectiveItems = {}
+    
+    if not self.currentMapObject or not self.currentMapObject.layers then
+        return
+    end
+    
+    local portalsLayer = self.currentMapObject.layers["Portals"]
+    if not portalsLayer or not portalsLayer.objects then
+        return
+    end
+    
+    local scale = self:isOutdoorMap() and 3 or 3
+    
+    for i, obj in pairs(portalsLayer.objects) do
+        -- Check if this object has an objectiveItem property
+        if obj.properties and obj.properties.objectiveItem then
+            local itemX = (obj.x * scale)
+            local itemY = (obj.y * scale)
+            local itemW = obj.width * scale
+            local itemH = obj.height * scale
+            
+            table.insert(self.objectiveItems, {
+                x = itemX,
+                y = itemY,
+                width = itemW,
+                height = itemH,
+                itemType = obj.properties.objectiveItem,
+                targetMap = obj.properties.targetMap,
+                spawnX = obj.properties.spawnX,
+                spawnY = obj.properties.spawnY,
+                collected = false
+            })
+        end
+    end
+end
+
+function MapManager:checkObjectiveItemInteraction(playerX, playerY)
+    if #self.objectiveItems == 0 then
+        return nil
+    end
+    
+    local interactionRange = 50
+    
+    for i, item in ipairs(self.objectiveItems) do
+        if not item.collected then
+            local itemCenterX = item.x + item.width / 2
+            local itemCenterY = item.y + item.height / 2
+            
+            local dist = math.sqrt(
+                (playerX - itemCenterX) ^ 2 + 
+                (playerY - itemCenterY) ^ 2
+            )
+            
+            if dist < interactionRange + (math.max(item.width, item.height) / 2) then
+                return item
+            end
+        end
+    end
+    
+    return nil
+end
+
+function MapManager:collectObjectiveItem(itemType)
+    for i, item in ipairs(self.objectiveItems) do
+        if item.itemType == itemType and not item.collected then
+            item.collected = true
+            return true
+        end
+    end
+    return false
+end
+
+function MapManager:hideLayer(layerName)
+    if not self.currentMapObject or not self.currentMapObject.layers then
+        return
+    end
+    
+    local layer = self.currentMapObject.layers[layerName]
+    if layer then
+        layer.visible = false
     end
 end
 

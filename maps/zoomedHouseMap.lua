@@ -10,7 +10,7 @@ return {
   tilewidth = 16,
   tileheight = 16,
   nextlayerid = 18,
-  nextobjectid = 35,
+  nextobjectid = 34,
   properties = {},
   tilesets = {
     {
@@ -704,15 +704,16 @@ return {
           name = "",
           type = "",
           shape = "rectangle",
-          x = 195,
+          x = 196.304,
           y = 50.75,
-          width = 10.25,
+          width = 7.20652,
           height = 12.5,
           rotation = 0,
           visible = true,
           properties = {
-            ["spawnX"] = 650,
-            ["spawnY"] = 423,
+            ["objectiveItem"] = "duckyRoom",
+            ["spawnX"] = 558,
+            ["spawnY"] = 430,
             ["targetMap"] = "maps/zoomedDuckroomMap.lua"
           }
         },
@@ -721,15 +722,16 @@ return {
           name = "",
           type = "",
           shape = "rectangle",
-          x = 211.273,
+          x = 212.751,
           y = 49.818,
-          width = 10.1818,
+          width = 6.87745,
           height = 13.0909,
           rotation = 0,
           visible = true,
           properties = {
-            ["spawnX"] = 400,
-            ["spawnY"] = 450,
+            ["objectiveItem"] = "parentRoom",
+            ["spawnX"] = 558,
+            ["spawnY"] = 430,
             ["targetMap"] = "maps/parentroomMap.lua"
           }
         },
@@ -745,8 +747,6 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["spawnX"] = 1500,
-            ["spawnY"] = 990,
             ["targetMap"] = "maps/frontyardMap.lua"
           }
         },
@@ -756,12 +756,13 @@ return {
           type = "",
           shape = "rectangle",
           x = 179.364,
-          y = 54.455,
-          width = 10.0909,
-          height = 6.18182,
+          y = 55.9767,
+          width = 5.17786,
+          height = 3.70356,
           rotation = 0,
           visible = true,
           properties = {
+            ["objectiveItem"] = "pictureFrame",
             ["triggerLine"] = "familyPicture"
           }
         },
@@ -777,6 +778,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
+            ["objectiveItem"] = "journal",
             ["triggerLine"] = "fatherJournal"
           }
         },
@@ -785,26 +787,15 @@ return {
           name = "",
           type = "",
           shape = "rectangle",
-          x = 231.75,
-          y = 82.75,
-          width = 0,
-          height = 0,
+          x = 129.188,
+          y = 64.8125,
+          width = 29.75,
+          height = 14.25,
           rotation = 0,
           visible = true,
-          properties = {}
-        },
-        {
-          id = 34,
-          name = "",
-          type = "",
-          shape = "rectangle",
-          x = 231.75,
-          y = 82.75,
-          width = 0,
-          height = 0,
-          rotation = 0,
-          visible = true,
-          properties = {}
+          properties = {
+            ["objectiveItem"] = "sink"
+          }
         }
       }
     },
