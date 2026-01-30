@@ -45,13 +45,20 @@ function DialogueManager:enter()
     self.smallFont = love.graphics.newFont("assets/fonts/VT323-Regular.ttf", 18)
     
     -- Load dialogue boxes for all characters
-    local characters = {"duckie", "mama", "papa", "mistress"}
+    local characters = {"duckie", "mama", "papa", "mistress", "beaky", "flappy", "waddle"}
     for _, characterName in ipairs(characters) do
         local boxPath = "assets/graphics/dialogue box/" .. characterName .. "-dialogue-box.png"
         local success, result = pcall(love.graphics.newImage, boxPath)
         if success then
             self.dialogueBoxImages[characterName] = result
         end
+    end
+    
+    -- Load mrfeather separately (capital letters in filename)
+    local mrFeatherPath = "assets/graphics/dialogue box/MrFeather-dialogue-box.png"
+    local success, result = pcall(love.graphics.newImage, mrFeatherPath)
+    if success then
+        self.dialogueBoxImages["mrfeather"] = result
     end
     
     -- Calculate box position (will be updated when dialogue starts)

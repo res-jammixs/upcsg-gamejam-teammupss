@@ -28,16 +28,7 @@ function Dialogue:enter()
     
     -- Start the dialogue with callback to return to game
     self.dialogueManager:startDialogue(self.dialogueKey, function()
-        -- Resume player SFX
-        if self.gameInstance.player then
-            if self.gameInstance.player.walkingSound then
-                self.gameInstance.player.walkingSound:play()
-            end
-            if self.gameInstance.player.sprintSound then
-                self.gameInstance.player.sprintSound:play()
-            end
-        end
-        
+        -- Don't resume sounds - they will auto-start when player moves
         -- When dialogue completes, return to the game instance without calling enter()
         returnToState(self.gameInstance)
     end)
