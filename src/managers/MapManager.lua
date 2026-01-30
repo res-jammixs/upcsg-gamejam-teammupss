@@ -35,12 +35,64 @@ function MapManager:new()
         fogAnimTime = 0,
         fogAmplitudeX = 3, -- pixels
         fogAmplitudeY = 2, -- pixels
-        fogSpeed = 0.8
+        fogSpeed = 0.8,
+        -- Darkness shader for maze map
+        darknessShader = nil,
+        darknessCanvas = nil,
+        -- Darkness fade state
+        darknessActive = true,
+        darknessFadeAmount = 1.0, -- 1.0 = full darkness, 0.0 = no darkness
+        darknessFading = false,
+        darknessFadeTime = 0,
+        darknessFadeDuration = 3.0,
+        -- Milkfish object
+        milkfishObject = nil
     }
     return setmetatable(self, { __index = MapManager })
 end
 
 function MapManager:init()
+    -- Create darkness shader for maze map
+    self.darknessShader = love.graphics.newShader([[
+        uniform vec2 playerPos;
+        uniform float lightRadius;
+        uniform float darknessFade; // 1.0 = full darkness, 0.0 = no darkness
+        
+        vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords) {
+            // Calculate distance from player position to current pixel
+            float dist = distance(screen_coords, playerPos);
+            
+            // Create smooth transition from visible to dark
+            // At 60% of radius = fully visible (alpha = 0)
+            // At 100% of radius = fully dark (alpha = 1)
+            float visibleRadius = lightRadius * 0.6;
+            float fadeStart = visibleRadius;
+            float fadeEnd = lightRadius;
+            
+            // Calculate darkness alpha based on distance
+            float alpha = 0.0;
+            if (dist > fadeStart) {
+                if (dist > fadeEnd) {
+                    alpha = 1.0; // Completely dark
+                } else {
+                    // Smooth transition between fadeStart and fadeEnd
+                    float t = (dist - fadeStart) / (fadeEnd - fadeStart);
+                    // Use smoothstep for even smoother transition
+                    alpha = smoothstep(0.0, 1.0, t);
+                }
+            }
+            
+            // Apply darkness with fade amount
+            vec4 pixel = Texel(texture, texture_coords) * color;
+            return mix(pixel, vec4(0.0, 0.0, 0.0, 1.0), alpha * darknessFade);
+        }
+    ]])
+    
+    -- Create canvas for rendering with darkness effect
+    local width = love.graphics.getWidth()
+    local height = love.graphics.getHeight()
+    self.darknessCanvas = love.graphics.newCanvas(width, height)
+    
     self:loadMap('zoomedHouseMap') --original zoomedHouseMap
 end
 
@@ -64,6 +116,14 @@ function MapManager:loadMap(mapName)
     self.currentMap = cleanMapName
     self.currentMapObject = sti('maps/' .. cleanMapName .. '.lua')
     self.world = wf.newWorld(0, 0)
+    
+    -- Reset darkness state for maze map
+    if cleanMapName == 'mazeMap' then
+        self.darknessActive = true
+        self.darknessFadeAmount = 1.0
+        self.darknessFading = false
+        self.darknessFadeTime = 0
+    end
     -- Find index of Fog2 (if present) so we can draw it above the player
     self.fogStartIndex = nil
     if self.currentMapObject.layers then
@@ -80,6 +140,9 @@ function MapManager:loadMap(mapName)
     
     -- Load portals
     self:loadPortals()
+    
+    -- Load Milkfish object for maze map
+    self:loadMilkfish()
 end
 
 function MapManager:loadWalls()
@@ -182,6 +245,57 @@ function MapManager:getFirstSpawnPoint()
     return nil, nil
 end
 
+function MapManager:loadMilkfish()
+    self.milkfishObject = nil
+    
+    if self.currentMap ~= 'mazeMap' then
+        return
+    end
+    
+    if self.currentMapObject.layers and self.currentMapObject.layers["Milkfish"] and self.currentMapObject.layers["Milkfish"].objects then
+        local scale = self:isOutdoorMap() and 3 or 3
+        
+        for i, obj in pairs(self.currentMapObject.layers["Milkfish"].objects) do
+            local objX = (obj.x * scale)
+            local objY = (obj.y * scale)
+            local objW = obj.width * scale
+            local objH = obj.height * scale
+            
+            self.milkfishObject = {
+                x = objX,
+                y = objY,
+                width = objW,
+                height = objH
+            }
+            break -- Only load the first Milkfish object
+        end
+    end
+end
+
+function MapManager:checkMilkfishInteraction(playerX, playerY)
+    if not self.milkfishObject or self.currentMap ~= 'mazeMap' then
+        return false
+    end
+    
+    local interactionRange = 50
+    local objCenterX = self.milkfishObject.x + self.milkfishObject.width / 2
+    local objCenterY = self.milkfishObject.y + self.milkfishObject.height / 2
+    
+    local dist = math.sqrt(
+        (playerX - objCenterX) ^ 2 + 
+        (playerY - objCenterY) ^ 2
+    )
+    
+    return dist < interactionRange + (math.max(self.milkfishObject.width, self.milkfishObject.height) / 2)
+end
+
+function MapManager:activateMilkfish()
+    if self.currentMap == 'mazeMap' and not self.darknessFading and self.darknessActive then
+        self.darknessFading = true
+        self.darknessFadeTime = 0
+    end
+end
+
 function MapManager:update(dt)
     if self.world then
         self.world:update(dt)
@@ -193,6 +307,19 @@ function MapManager:update(dt)
     local ay = self.fogAmplitudeY or 2
     self.fogOffsetX = math.sin(self.fogAnimTime * s * 1.2) * ax
     self.fogOffsetY = math.cos(self.fogAnimTime * s * 0.9) * ay
+    
+    -- Update darkness fade for maze map
+    if self.darknessFading then
+        self.darknessFadeTime = self.darknessFadeTime + dt
+        local progress = math.min(self.darknessFadeTime / self.darknessFadeDuration, 1.0)
+        self.darknessFadeAmount = 1.0 - progress -- Fade from 1.0 to 0.0
+        
+        if progress >= 1.0 then
+            self.darknessFading = false
+            self.darknessActive = false
+            self.darknessFadeAmount = 0.0
+        end
+    end
 end
 
 function MapManager:isOutdoorMap()

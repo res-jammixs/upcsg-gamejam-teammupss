@@ -213,6 +213,15 @@ end
 function Game:draw()
     -- Handle camera for outdoor maps
     if self.mapManager:isOutdoorMap() then
+        -- Check if we're in maze map for darkness effect
+        local isMazeMap = self.mapManager:getCurrentMap() == "mazeMap"
+        
+        if isMazeMap then
+            -- Render everything to canvas first
+            love.graphics.setCanvas(self.mapManager.darknessCanvas)
+            love.graphics.clear()
+        end
+        
         cam:attach()
         self.mapManager:draw()
         self.enemyManager:draw()
@@ -227,6 +236,29 @@ function Game:draw()
         self.mapManager:drawAbovePlayer()
 
         cam:detach()
+        
+        if isMazeMap and self.mapManager.darknessFadeAmount > 0.01 then
+            -- Apply darkness shader only if darkness is still visible
+            love.graphics.setCanvas()
+            
+            -- Calculate player position in screen coordinates
+            local screenX = self.player.x - cam.x + love.graphics.getWidth() / 2
+            local screenY = self.player.y - cam.y + love.graphics.getHeight() / 2
+            
+            -- Set shader parameters (3 tiles = 16 * 3 = 48 pixels per tile at scale 3 = 144 pixels radius)
+            self.mapManager.darknessShader:send("playerPos", {screenX, screenY})
+            self.mapManager.darknessShader:send("lightRadius", 144) -- 3 tiles radius
+            self.mapManager.darknessShader:send("darknessFade", self.mapManager.darknessFadeAmount)
+            
+            -- Draw the canvas with shader applied
+            love.graphics.setShader(self.mapManager.darknessShader)
+            love.graphics.draw(self.mapManager.darknessCanvas, 0, 0)
+            love.graphics.setShader()
+        elseif isMazeMap then
+            -- If darkness is faded out, just draw the canvas normally
+            love.graphics.setCanvas()
+            love.graphics.draw(self.mapManager.darknessCanvas, 0, 0)
+        end
     else
         -- Indoor maps don't use camera
         self.mapManager:draw()
@@ -250,6 +282,15 @@ function Game:draw()
     if nearbyNPC then
         self:drawNPCInteractionPrompt(nearbyNPC)
     end
+    
+    -- Check if near Milkfish and show interaction prompt
+    if self.mapManager:getCurrentMap() == 'mazeMap' and self.mapManager.darknessActive then
+        local playerX = self.player.collider:getX()
+        local playerY = self.player.collider:getY()
+        if self.mapManager:checkMilkfishInteraction(playerX, playerY) then
+            self:drawMilkfishInteractionPrompt()
+        end
+    end
 end
 
 function Game:keypressed(key)
@@ -272,6 +313,16 @@ function Game:keypressed(key)
     end
     
     if key == 'f' or key == 'F' then
+        -- Check for Milkfish interaction first (in maze map)
+        if self.mapManager:getCurrentMap() == 'mazeMap' then
+            local playerX = self.player.collider:getX()
+            local playerY = self.player.collider:getY()
+            if self.mapManager:checkMilkfishInteraction(playerX, playerY) then
+                self.mapManager:activateMilkfish()
+                return
+            end
+        end
+        -- Otherwise check for portal interaction
         self:interact()
     elseif key == 'e' or key == 'E' then
         -- Check if near an NPC
@@ -383,6 +434,11 @@ end
 function Game:drawNPCInteractionPrompt(npc)
     love.graphics.setFont(self.uiFont)
     self:drawTextWithShadow("Press E to talk to " .. npc.name, 50)
+end
+
+function Game:drawMilkfishInteractionPrompt()
+    love.graphics.setFont(self.uiFont)
+    self:drawTextWithShadow("Press F to get milkfish", 50)
 end
 
 function Game:findSafeRespawnPoint(baseX, baseY)

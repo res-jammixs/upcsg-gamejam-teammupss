@@ -9,8 +9,8 @@ return {
   height = 48,
   tilewidth = 16,
   tileheight = 16,
-  nextlayerid = 10,
-  nextobjectid = 257,
+  nextlayerid = 11,
+  nextobjectid = 258,
   properties = {},
   tilesets = {
     {
@@ -930,19 +930,6 @@ return {
             ["spawnY"] = 60,
             ["targetMap"] = "maps/intersectionMap.lua"
           }
-        },
-        {
-          id = 3,
-          name = "",
-          type = "",
-          shape = "rectangle",
-          x = 492.5,
-          y = 625.75,
-          width = 38,
-          height = 29.5,
-          rotation = 0,
-          visible = true,
-          properties = {}
         }
       }
     },
@@ -952,7 +939,7 @@ return {
       id = 8,
       name = "Walls",
       class = "",
-      visible = true,
+      visible = false,
       opacity = 1,
       offsetx = 0,
       offsety = 0,
@@ -4167,6 +4154,35 @@ return {
           y = 52.5,
           width = 30.5,
           height = 26.75,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        }
+      }
+    },
+    {
+      type = "objectgroup",
+      draworder = "topdown",
+      id = 10,
+      name = "Milkfish",
+      class = "",
+      visible = false,
+      opacity = 1,
+      offsetx = 0,
+      offsety = 0,
+      parallaxx = 1,
+      parallaxy = 1,
+      properties = {},
+      objects = {
+        {
+          id = 257,
+          name = "",
+          type = "",
+          shape = "rectangle",
+          x = 492.333,
+          y = 625.583,
+          width = 38,
+          height = 29.5,
           rotation = 0,
           visible = true,
           properties = {}

@@ -1008,8 +1008,8 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["spawnX"] = 510,
-            ["spawnY"] = 60,
+            ["spawnX"] = 1500,
+            ["spawnY"] = 40,
             ["targetMap"] = "maps/mazeMap.lua"
           }
         }
