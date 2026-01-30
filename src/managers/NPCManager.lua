@@ -48,7 +48,55 @@ function NPCManager:new()
                     name = "Waddle",
                     movementType = 1, -- 1 = horizontal (left-right)
                     moveDistance = 180,
-                    moveSpeed = 45                }
+                    moveSpeed = 45                },
+                {
+                    x = 53 * 16 * 3,
+                    y = 8 * 16 * 3,
+                    sprite = "assets/graphics/characters/Mr.Andy.png",
+                    dialogueKey = "mrandynpc",
+                    name = "Mr. Andy",
+                    movementType = 0,
+                    moveDistance = 0,
+                    moveSpeed = 0,
+                    facingDirection = nil,
+                    spriteFrame = {"1-4", 1} -- Animate all 4 frames in first row
+                },
+                {
+                    x =  6 * 16 * 3,
+                    y = 11 * 16 * 3,
+                    sprite = "assets/graphics/characters/ShadyDuck.png",
+                    dialogueKey = "shadyducknpc",
+                    name = "Shady Duck",
+                    movementType = 0,
+                    moveDistance = 0,
+                    moveSpeed = 0,
+                    facingDirection = "down",
+                    spriteFrame = {1, 1} -- Single frame idle
+                },
+                {
+                    x = 16 * 16 * 3,
+                    y = 39 * 16 * 3,
+                    sprite = "assets/graphics/characters/Kurt.png",
+                    dialogueKey = "kurtnpc",
+                    name = "Kurt",
+                    movementType = 0,
+                    moveDistance = 0,
+                    moveSpeed = 0,
+                    facingDirection = "down",
+                    spriteFrame = {1, 1} -- Single frame idle
+                },
+                {
+                    x = 53 * 16 * 3,
+                    y = 42 * 16 * 3,
+                    sprite = "assets/graphics/characters/Rita.png",
+                    dialogueKey = "ritanpc",
+                    name = "Rita",
+                    movementType = 0,
+                    moveDistance = 0,
+                    moveSpeed = 0,
+                    facingDirection = "down",
+                    spriteFrame = {1, 1} -- Single frame idle
+                }
             },
             -- Add more maps and NPCs here
             -- frontyardMap = {

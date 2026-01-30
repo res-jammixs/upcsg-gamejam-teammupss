@@ -45,48 +45,13 @@ function DialogueManager:enter()
     self.smallFont = love.graphics.newFont("assets/fonts/VT323-Regular.ttf", 18)
     
     -- Load dialogue boxes for all characters
-    local characters = {"duckie", "mama", "papa", "mistress", "beaky", "flappy", "waddle"}
+    local characters = {"duckie", "mama", "papa", "mistress"}
     for _, characterName in ipairs(characters) do
         local boxPath = "assets/graphics/dialogue box/" .. characterName .. "-dialogue-box.png"
         local success, result = pcall(love.graphics.newImage, boxPath)
         if success then
             self.dialogueBoxImages[characterName] = result
         end
-    end
-    
-    -- Load mrfeather separately (capital letters in filename)
-    local mrFeatherPath = "assets/graphics/dialogue box/MrFeather-dialogue-box.png"
-    local success, result = pcall(love.graphics.newImage, mrFeatherPath)
-    if success then
-        self.dialogueBoxImages["mrfeather"] = result
-    end
-    
-    -- Load Mr.Andy separately (capital letters in filename)
-    local mrAndyPath = "assets/graphics/dialogue box/Mr.Andy-dialogue-box.png"
-    local success2, result2 = pcall(love.graphics.newImage, mrAndyPath)
-    if success2 then
-        self.dialogueBoxImages["mrandy"] = result2
-    end
-    
-    -- Load ShadyDuck separately (capital letters in filename)
-    local shadyDuckPath = "assets/graphics/dialogue box/ShadyDuck-dialogue-box.png"
-    local success3, result3 = pcall(love.graphics.newImage, shadyDuckPath)
-    if success3 then
-        self.dialogueBoxImages["shadyduck"] = result3
-    end
-    
-    -- Load Kurt separately (capital letters in filename)
-    local kurtPath = "assets/graphics/dialogue box/Kurt-dialogue-box.png"
-    local success4, result4 = pcall(love.graphics.newImage, kurtPath)
-    if success4 then
-        self.dialogueBoxImages["kurt"] = result4
-    end
-    
-    -- Load Rita separately (capital letters in filename)
-    local ritaPath = "assets/graphics/dialogue box/Rita-dialogue-box.png"
-    local success5, result5 = pcall(love.graphics.newImage, ritaPath)
-    if success5 then
-        self.dialogueBoxImages["rita"] = result5
     end
     
     -- Calculate box position (will be updated when dialogue starts)

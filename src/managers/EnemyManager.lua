@@ -124,6 +124,14 @@ function EnemyManager:resetAllToInitialPositions()
             enemy.y = enemy.spawnY
             enemy.state = 'patrol'
             
+            -- Stop enemy sounds if playing
+            if enemy.owlSound and enemy.owlSound:isPlaying() then
+                enemy.owlSound:stop()
+            end
+            if enemy.foxSound and enemy.foxSound:isPlaying() then
+                enemy.foxSound:stop()
+            end
+            
             -- Reset bird-specific properties
             if enemy.patrolAngle then
                 enemy.patrolAngle = 0

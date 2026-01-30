@@ -85,20 +85,11 @@ function Game:switchMusic(mapName)
         if ashMapMusic then ashMapMusic:stop() end
         if whisperMapMusic then whisperMapMusic:stop() end
         if not houseMusic then
-            if love.filesystem.getInfo("assets/sounds/music/house-music.mp3") then
-                local ok, src = pcall(love.audio.newSource, "assets/sounds/music/house-music.mp3", "stream")
-                if ok and src then
-                    houseMusic = src
-                    houseMusic:setLooping(true)
-                    houseMusic:setVolume(0.06)
-                else
-                    print("Warning: Failed to load house-music.mp3")
-                end
-            else
-                print("Warning: Missing house-music.mp3")
-            end
+            houseMusic = love.audio.newSource("assets/sounds/music/house-music.mp3", "stream")
+            houseMusic:setLooping(true)
+            houseMusic:setVolume(0.05)
         end
-        if houseMusic then houseMusic:play() end
+        houseMusic:play()
         currentMusicTrack = "house"
     -- Switch music for general outdoor maps
     elseif not isIndoor and cleanMapName ~= "ashMap" and cleanMapName ~= "whisperMap" and currentMusicTrack ~= "game" then
@@ -168,22 +159,6 @@ function Game:init()
     
     -- Cache font for UI prompts
     self.uiFont = love.graphics.newFont("assets/fonts/VT323-Regular.ttf", 24)
-    
-    -- Load game-over sound effect safely
-    local goPath = "assets/sounds/sfx/game-over.mp3"
-    if love.filesystem.getInfo(goPath) then
-        local ok, src = pcall(love.audio.newSource, goPath, "static")
-        if ok and src then
-            self.gameOverSound = src
-            self.gameOverSound:setVolume(0.3)
-        else
-            print("Warning: Failed to load game-over.mp3")
-            self.gameOverSound = nil
-        end
-    else
-        print("Warning: Missing game-over.mp3 - continuing without it")
-        self.gameOverSound = nil
-    end
     
     -- Interaction cooldown
     self.isTransitioning = false
@@ -363,6 +338,15 @@ function Game:draw()
     if nearbyNPC then
         self:drawNPCInteractionPrompt(nearbyNPC)
     end
+    
+    -- Check if near Milkfish and show interaction prompt
+    if self.mapManager:getCurrentMap() == 'mazeMap' and self.mapManager.darknessActive then
+        local playerX = self.player.collider:getX()
+        local playerY = self.player.collider:getY()
+        if self.mapManager:checkMilkfishInteraction(playerX, playerY) then
+            self:drawMilkfishInteractionPrompt()
+        end
+    end
 end
 
 function Game:keypressed(key)
@@ -385,6 +369,16 @@ function Game:keypressed(key)
     end
     
     if key == 'f' or key == 'F' then
+        -- Check for Milkfish interaction first (in maze map)
+        if self.mapManager:getCurrentMap() == 'mazeMap' then
+            local playerX = self.player.collider:getX()
+            local playerY = self.player.collider:getY()
+            if self.mapManager:checkMilkfishInteraction(playerX, playerY) then
+                self.mapManager:activateMilkfish()
+                return
+            end
+        end
+        -- Otherwise check for portal interaction
         self:interact()
     elseif key == 'e' or key == 'E' then
         -- Check if near an NPC
