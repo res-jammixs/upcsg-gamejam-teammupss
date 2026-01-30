@@ -1,123 +1,83 @@
+local MainMenuManager = require('src.managers.MainMenuManager')
 local MainMenu = {}
-local Game = require('src.game')  
+local Game = require('src.game')
 
-local function newButton(text, fn)
-    return {
-        text = text,
-        fn = fn
-    }
-end
-
-local buttons = {}
-local selected = 1
+local manager
 local fontTitle
 local fontMenu
-local bgVideo
 local buttonPressed = false
-local menuMusic
-local isTransitioning = false
 
 function MainMenu:enter()
-    bgVideo = love.graphics.newVideo("assets/graphics/ui/menu.ogv")
-    bgVideo:play()
+    -- Initialize manager
+    manager = MainMenuManager:new()
+    
+    -- Load fonts
     fontTitle = love.graphics.newFont("assets/fonts/VT323-Regular.ttf", 90)
     fontMenu = love.graphics.newFont("assets/fonts/VT323-Regular.ttf", 52)
     
-    -- Load and play main menu music
-    menuMusic = love.audio.newSource("assets/sounds/music/main-menu.mp3", "stream")
-    menuMusic:setLooping(true)
-    menuMusic:setVolume(0.3)
-    menuMusic:play()
+    -- Load assets via manager
+    manager:loadAssets()
     
-    buttons = {}
-    selected = 1
+    -- Reset button press state
     buttonPressed = false
-    isTransitioning = false
     
-    table.insert(buttons, newButton("START", function()
+    -- Add buttons via manager
+    manager:addButton("START", function()
         -- Prevent multiple clicks during transition
-        if isTransitioning then return end
-        isTransitioning = true
+        if manager:isInTransition() then return end
+        manager:startTransition()
         
         -- Stop menu music
-        if menuMusic then
-            menuMusic:stop()
-        end
+        manager:stopMusic()
         
         local transition = getTransition()
         transition:fadeIn(0.5, function()
             switchState(Game)
         end)
-    end))
+    end)
     
-    table.insert(buttons, newButton("EXIT", function()
+    manager:addButton("EXIT", function()
         love.event.quit()
-    end))
+    end)
 end
 
 function MainMenu:exit()
-    if bgVideo then
-        bgVideo:release()
-    end
-    if menuMusic then
-        menuMusic:stop()
-        menuMusic:release()
-    end
+    manager:cleanup()
 end
 
 function MainMenu:update(dt)
-    if bgVideo and not bgVideo:isPlaying() then
-        bgVideo:rewind()
-        bgVideo:play()
-    end
+    -- Update video loop
+    manager:updateVideo(dt)
     
-    -- Prevent menu navigation during transition
-    if isTransitioning then return end
-    
-    -- Mouse hover detection
+    -- Update mouse hover
     local mx, my = love.mouse.getPosition()
     local ww = love.graphics.getWidth()
     local wh = love.graphics.getHeight()
-    local spacing = 60
-    local startY = wh * 0.40
-    
-    for i, buttonObj in ipairs(buttons) do
-        local buttonY = startY + (i - 1) * spacing
-        local buttonWidth = fontMenu:getWidth(buttonObj.text)
-        local buttonHeight = fontMenu:getHeight()
-        local textX = (ww - buttonWidth) / 2
-        
-        if mx >= textX and mx <= textX + buttonWidth and
-           my >= buttonY and my <= buttonY + buttonHeight then
-            selected = i
-            break
-        end
-    end
+    manager:updateMouseHover(mx, my, fontMenu, ww, wh)
 end
 
 function MainMenu:keypressed(key)
-    if isTransitioning then return end
+    if manager:isInTransition() then return end
     
     if key == "down" or key == "s" then
-        selected = selected + 1
-        if selected > #buttons then selected = 1 end
+        manager:moveSelection(1)
     elseif key == "up" or key == "w" then
-        selected = selected - 1
-        if selected < 1 then selected = #buttons end
+        manager:moveSelection(-1)
     elseif key == "return" or key == "space" then
-        buttons[selected].fn()
+        manager:activateSelected()
     end
 end
 
 -- Mouse click detection
 function MainMenu:mousepressed(x, y, button)
-    if isTransitioning then return end
+    if manager:isInTransition() then return end
     
-    if button == 1 then  
+    if button == 1 then
         local ww = love.graphics.getWidth()
         local wh = love.graphics.getHeight()
         local spacing = 60
         local startY = wh * 0.40
+        local buttons = manager:getButtons()
         
         for i, buttonObj in ipairs(buttons) do
             local buttonY = startY + (i - 1) * spacing
@@ -136,13 +96,14 @@ function MainMenu:mousepressed(x, y, button)
 end
 
 function MainMenu:mousereleased(x, y, button)
-    if isTransitioning then return end
+    if manager:isInTransition() then return end
     
     if button == 1 and buttonPressed then
         local ww = love.graphics.getWidth()
         local wh = love.graphics.getHeight()
         local spacing = 60
         local startY = wh * 0.40
+        local buttons = manager:getButtons()
         
         for i, buttonObj in ipairs(buttons) do
             local buttonY = startY + (i - 1) * spacing
@@ -166,6 +127,7 @@ function MainMenu:draw()
     local ww = love.graphics.getWidth()
     local wh = love.graphics.getHeight()
     
+    local bgVideo = manager:getBackgroundVideo()
     local videoWidth = bgVideo:getWidth()
     local videoHeight = bgVideo:getHeight()
     local scaleX = ww / videoWidth
@@ -177,8 +139,9 @@ function MainMenu:draw()
     love.graphics.setFont(fontMenu)
     
     local spacing = 60
-    local totalHeight = (#buttons - 1) * spacing
     local startY = wh * 0.40
+    local buttons = manager:getButtons()
+    local selected = manager:getSelected()
     
     for i, button in ipairs(buttons) do
         local y = startY + (i - 1) * spacing

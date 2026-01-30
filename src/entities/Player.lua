@@ -1,8 +1,18 @@
 Player = {}
 
+-- Player hitbox (collider dimensions)
+local HITBOX = {
+    width = 37,
+    height = 51,
+    -- Offset from collider center to draw rectangle correctly
+    offsetX = -19,
+    offsetY = -35
+}
+
 function Player:new()
     local anim8 = require('lib.anim8')
     local sprite = love.graphics.newImage('assets/graphics/characters/Duckie-sprite-sheet.png')
+    sprite:setFilter('nearest', 'nearest')
     local grid = anim8.newGrid(12, 18, sprite:getWidth(), sprite:getHeight())    
 
     local animations = {
@@ -22,11 +32,11 @@ function Player:new()
     sprintSound:setVolume(0.1)
     
     local self = {
-        x = 482,
-        y = 354,
+        x = 528, -- original 528
+        y = 384, -- orignal 384 
         -- original speed is 800
-        speed = 200,
-        sprintSpeed = 1100,
+        speed = 10000,
+        sprintSpeed = 1300,
         sprite = sprite,
         grid = grid,
         animations = animations,
@@ -157,6 +167,14 @@ function Player:draw()
     -- Reset color and draw player
     love.graphics.setColor(1, 1, 1, 1)
     self.animations[self.currentAnim]:draw(self.sprite, self.x, self.y, nil, 3)
+    
+    -- Debug: Draw player hitbox (collider is 37x30, offset from sprite)
+    if self.collider then
+        love.graphics.setColor(0, 1, 0, 0.5)
+        local hbX, hbY = self.collider:getPosition()
+        love.graphics.rectangle("line", hbX + HITBOX.offsetX, hbY + HITBOX.offsetY, HITBOX.width, HITBOX.height)
+        love.graphics.setColor(1, 1, 1, 1)
+    end
 end
 
 return Player

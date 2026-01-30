@@ -1,6 +1,6 @@
 local MainMenu = require('src.states.MainMenu')
 local Game = require('src.game')
-local Transition = require('src.util.Transition')
+local Transition = require('src.managers.TransitionManager')
 
 local currentState
 local transition
@@ -10,6 +10,7 @@ GAME_WIDTH = 1024
 GAME_HEIGHT = 768
 
 function love.load()
+    -- Set nearest neighbor filtering FIRST before any images are loaded
     love.graphics.setDefaultFilter("nearest", "nearest")
     
     -- Ensure the window is exactly the intended size
@@ -69,6 +70,11 @@ function switchState(newState)
     if currentState.enter then
         currentState:enter()
     end
+end
+
+-- Function to return to a state without calling enter (for dialogue)
+function returnToState(state)
+    currentState = state
 end
 
 -- Function to get the transition object
