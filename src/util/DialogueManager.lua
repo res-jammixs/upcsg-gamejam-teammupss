@@ -272,7 +272,7 @@ function DialogueManager:draw()
     love.graphics.setColor(1, 1, 1, 1)
 end
 
-function DialogueManager:kthen return end
+function DialogueManager:keypressed(key)
     
     -- Handle choice selection
     if self.isWaitingForChoice then
