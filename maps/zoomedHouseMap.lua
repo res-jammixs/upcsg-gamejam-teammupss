@@ -730,8 +730,8 @@ return {
           visible = true,
           properties = {
             ["objectiveItem"] = "parentRoom",
-            ["spawnX"] = 558,
-            ["spawnY"] = 430,
+            ["spawnX"] = 8 * 16 * 3,
+            ["spawnY"] = 9 * 16 * 3,
             ["targetMap"] = "maps/parentroomMap.lua"
           }
         },
@@ -747,6 +747,8 @@ return {
           rotation = 0,
           visible = true,
           properties = {
+            ["spawnX"] = 31 * 16 * 3,
+            ["spawnY"] = 21 * 16 * 3,
             ["targetMap"] = "maps/frontyardMap.lua"
           }
         },
