@@ -3,6 +3,12 @@ local EnemyManager = require('src.managers.EnemyManager')
 local NPCManager = require('src.managers.NPCManager')
 local ItemManager = require('src.managers.ItemManager')
 local InventoryUI = require('src.managers.InventoryUI')
+local SignageManager = require('src.util.SignageManager')
+local StoryManager = require('src.managers.StoryManager')
+local DialogueRoute1 = require('data.DialogueRoute1')
+local DialogueRoute2 = require('data.DialogueRoute2')
+local DialogueRoute3 = require('data.DialogueRoute3')
+local EndingScreen = require('src.states.EndingScreen')
 
 Game = {}
 local gameMusic = nil -- Store music reference globally
@@ -127,6 +133,13 @@ function Game:init()
     self.whisperMapEntryX = nil
     self.whisperMapEntryY = nil
     
+    -- Ending routes state tracking
+    self.hasTriggeredScene13 = false
+    self.routeNPCsSpawned = false
+    self.currentDialogueRoute = nil
+    self.endingScreen = nil
+    self.showingEnding = false
+    
     -- Create player collider in the current world
     local world = self.mapManager:getWorld()
     self.player.collider = world:newBSGRectangleCollider(self.player.x, self.player.y, 37, 30, 10)
@@ -151,6 +164,15 @@ function Game:init()
     self.inventoryUI = InventoryUI:new()
     self.inventoryUI:init()
     
+    -- Initialize signage manager
+    self.signageManager = SignageManager:new()
+    self.signageManager:init()
+    self.signageManager:loadSignsForMap(self.mapManager.currentMap, self.mapManager.currentMapObject)
+    
+    -- Initialize story manager
+    self.storyManager = StoryManager:new()
+    self.storyManager:init()
+    
     -- Initialize global inventory if not exists
     if not _G.inventory then
         _G.inventory = {}
@@ -158,6 +180,15 @@ function Game:init()
     
     -- Cache font for UI prompts
     self.uiFont = love.graphics.newFont("assets/fonts/VT323-Regular.ttf", 24)
+    
+    -- Load objective box sprite (optional)
+    local success, result = pcall(love.graphics.newImage, "assets/graphics/dialogue box/objective-box-sprite.png")
+    if success then
+        self.objectiveBoxSprite = result
+    else
+        print("Warning: objective-box-sprite.png not found, using fallback display")
+        self.objectiveBoxSprite = nil
+    end
     
     -- Load game-over sound effect
     self.gameOverSound = love.audio.newSource("assets/sounds/sfx/game-over.mp3", "static")
@@ -196,6 +227,9 @@ end
 function Game:enter()
     self:init()
     
+    -- Start tutorial dialogue immediately
+    self.storyManager:startTutorial()
+    
     -- Trigger fade-out transition when entering the game (screen starts black and fades to reveal room)
     local transition = getTransition()
     transition:fadeOut(0.5, function()
@@ -205,8 +239,28 @@ function Game:enter()
 end
 
 function Game:update(dt)
+    -- Handle ending screen
+    if self.showingEnding and self.endingScreen then
+        self.endingScreen:update(dt)
+        return
+    end
+    
     -- Don't update player during transition
     if self.isTransitioning then
+        return
+    end
+    
+    -- Update story manager (handles dialogue)
+    self.storyManager:update(dt)
+    
+    -- Update signage if active
+    if self.signageManager:isActive() then
+        self.signageManager:update(dt)
+        return -- Don't update other things while showing sign
+    end
+    
+    -- Don't update player if showing story dialogue
+    if self.storyManager:isActive() then
         return
     end
     
@@ -262,6 +316,44 @@ function Game:update(dt)
         self:handlePlayerDeath(collidedEnemy)
     end
     
+    -- Check if in whisperMap and collected Whisper Weed to trigger scene10
+    if self.mapManager:getCurrentMap() == 'whisperMap' then
+        if _G.inventory and _G.inventory.whisperweed == true then
+            -- Check if scene10 hasn't been triggered yet
+            if not self.storyManager:isSceneCompleted("scene10") then
+                -- Trigger scene10 dialogue
+                print("DEBUG: Whisper Weed collected in whisperMap - Triggering scene10")
+                self.storyManager:playScene("scene10", function()
+                    -- After scene10 completes, advance to obj16 (Go to the Ash Lands)
+                    if self.storyManager.currentObjective == "obj15" then
+                        table.insert(self.storyManager.completedObjectives, "obj15")
+                        self.storyManager.currentObjective = "obj16"
+                        print("DEBUG: Advanced to obj16 - Go to the Ash Lands")
+                    end
+                end)
+            end
+        end
+    end
+    
+    -- Check if in ashMap and collected 10 ashberries to trigger scene12
+    if self.mapManager:getCurrentMap() == 'ashMap' then
+        if _G.inventory and (_G.inventory.ashberry or 0) >= 10 then
+            -- Check if scene12 hasn't been triggered yet
+            if not self.storyManager:isSceneCompleted("scene12") then
+                -- Trigger scene12 dialogue
+                print("DEBUG: 10 Ashberries collected in ashMap - Triggering scene12")
+                self.storyManager:playScene("scene12", function()
+                    -- After scene12 completes, advance to obj18 (Go to the Hill with the Thousand Turns)
+                    if self.storyManager.currentObjective == "obj17" then
+                        table.insert(self.storyManager.completedObjectives, "obj17")
+                        self.storyManager.currentObjective = "obj18"
+                        print("DEBUG: Advanced to obj18 - Go to the Hill with the Thousand Turns")
+                    end
+                end)
+            end
+        end
+    end
+    
     -- Camera follows player in outdoor maps
     if self.mapManager:isOutdoorMap() then
         cam:lookAt(self.player.x, self.player.y)
@@ -291,6 +383,12 @@ function Game:update(dt)
 end
 
 function Game:draw()
+    -- Handle ending screen
+    if self.showingEnding and self.endingScreen then
+        self.endingScreen:draw()
+        return
+    end
+    
     -- Handle camera for outdoor maps
     if self.mapManager:isOutdoorMap() then
         -- Check if we're in maze map for darkness effect
@@ -389,9 +487,82 @@ function Game:draw()
             self:drawMilkfishInteractionPrompt()
         end
     end
+    
+    -- Check if near a sign and show interaction prompt
+    if not self.signageManager:isActive() then
+        local playerX = self.player.collider:getX()
+        local playerY = self.player.collider:getY()
+        local nearbySign = self.signageManager:checkSignInteraction(playerX, playerY)
+        if nearbySign then
+            self:drawSignInteractionPrompt()
+        end
+    end
+    
+    -- Check if near an objective item and show interaction prompt
+    if not self.storyManager:isActive() and not self.signageManager:isActive() then
+        local playerX = self.player.collider:getX()
+        local playerY = self.player.collider:getY()
+        local nearbyItem = self.mapManager:checkObjectiveItemInteraction(playerX, playerY)
+        if nearbyItem then
+            self:drawObjectiveItemPrompt(nearbyItem)
+        end
+    end
+    
+    -- Draw signage overlay if active (should be on top of everything)
+    self.signageManager:draw()
+    
+    -- Draw story dialogue (should be on top of signage)
+    self.storyManager:draw()
+    
+    -- Draw current objective in upper right corner
+    if not self.storyManager:isActive() and not self.signageManager:isActive() then
+        local screenWidth = love.graphics.getWidth()
+        local objectiveText = self.storyManager:getCurrentObjectiveText()
+        
+        if self.objectiveBoxSprite then
+            local spriteWidth = self.objectiveBoxSprite:getWidth()
+            local spriteHeight = self.objectiveBoxSprite:getHeight()
+            local boxX = screenWidth - spriteWidth - 20
+            local boxY = 20
+            
+            -- Draw objective box sprite
+            love.graphics.setColor(1, 1, 1, 1)
+            love.graphics.draw(self.objectiveBoxSprite, boxX, boxY)
+            
+            -- Draw objective text
+            love.graphics.setFont(self.uiFont)
+            love.graphics.setColor(0, 0, 0, 1)
+            local textX = boxX + 20
+            local textY = boxY + 15
+            local textWidth = spriteWidth - 40
+            love.graphics.printf("Objective:", textX, textY, textWidth, "left")
+            love.graphics.printf(objectiveText, textX, textY + 25, textWidth, "left")
+            love.graphics.setColor(1, 1, 1, 1)
+        else
+            -- Fallback: simple box in upper right corner
+            local boxWidth = 300
+            local boxHeight = 80
+            local boxX = screenWidth - boxWidth - 20
+            local boxY = 20
+            
+            love.graphics.setColor(0, 0, 0, 0.7)
+            love.graphics.rectangle("fill", boxX, boxY, boxWidth, boxHeight)
+            
+            love.graphics.setFont(self.uiFont)
+            love.graphics.setColor(1, 1, 1, 1)
+            love.graphics.printf("Objective:", boxX + 10, boxY + 10, boxWidth - 20, "left")
+            love.graphics.printf(objectiveText, boxX + 10, boxY + 35, boxWidth - 20, "left")
+        end
+    end
 end
 
 function Game:keypressed(key)
+    -- Handle ending screen input
+    if self.showingEnding and self.endingScreen then
+        self.endingScreen:keypressed(key)
+        return
+    end
+    
     -- Handle ESC to return to main menu
     if key == 'escape' then
         -- Stop all game music
@@ -410,7 +581,20 @@ function Game:keypressed(key)
         return
     end
     
-    if key == 'e' or key == 'E' then
+    if key == 'space' then
+        -- If showing a sign, close it with space
+        if self.signageManager:isActive() then
+            self.signageManager:closeSign()
+            return
+        end
+        -- If showing story dialogue, advance it
+        if self.storyManager:isActive() then
+            self.storyManager:nextDialogue()
+            return
+        end
+        -- Test: Remove last enemy
+        self.enemyManager:removeLastEnemy()
+    elseif key == 'e' or key == 'E' then
         -- Check for Milkfish interaction first (in maze map)
         if self.mapManager:getCurrentMap() == 'mazeMap' then
             local playerX = self.player.collider:getX()
@@ -420,17 +604,48 @@ function Game:keypressed(key)
                 return
             end
         end
+        
+        -- Check if near an objective item
+        local playerX = self.player.collider:getX()
+        local playerY = self.player.collider:getY()
+        local nearbyItem = self.mapManager:checkObjectiveItemInteraction(playerX, playerY)
+        if nearbyItem and not nearbyItem.collected then
+            -- If objective item has targetMap, treat it as a portal
+            if nearbyItem.targetMap then
+                -- Set pending dialogue and transport to new map
+                self.storyManager:handleObjectiveItem(nearbyItem.itemType, self.mapManager, true)
+                self:handleMapTransition(nearbyItem.targetMap, nearbyItem.spawnX, nearbyItem.spawnY)
+            else
+                -- No targetMap, trigger dialogue immediately
+                self.storyManager:handleObjectiveItem(nearbyItem.itemType, self.mapManager, false)
+            end
+            return
+        end
+        
+        -- Check if near a sign
+        local nearbySign = self.signageManager:checkSignInteraction(playerX, playerY)
+        if nearbySign and nearbySign.text and nearbySign.text ~= "" then
+            self.signageManager:showSign(nearbySign.text)
+            return
+        end
+        
         -- Check if near an NPC
         local nearbyNPC = self.npcManager:checkPlayerInteraction(self.player.x, self.player.y)
         if nearbyNPC then
             self:triggerNPCDialogue(nearbyNPC)
             return
         end
+        
         -- Otherwise check for portal interaction
         self:interact()
-    elseif key == 'space' then
-        -- Test: Remove last enemy
-        self.enemyManager:removeLastEnemy()
+    end
+end
+
+function Game:mousepressed(x, y, button)
+    -- Handle ending screen input
+    if self.showingEnding and self.endingScreen then
+        self.endingScreen:mousepressed(x, y, button)
+        return
     end
 end
 
@@ -457,6 +672,151 @@ function Game:drawInteractionPrompt()
     self:drawTextWithShadow("Press E to interact", 20)
 end
 
+function Game:handleMapTransition(targetMap, spawnX, spawnY)
+    -- Prevent interaction during transition
+    if self.isTransitioning then return end
+    
+    self.isTransitioning = true
+    local transition = getTransition()
+    -- Fade to black first, then load the map and fade out
+    transition:fadeIn(0.5, function()
+        -- Load the target map while screen is black
+        self.mapManager:loadMap(targetMap)
+        
+        -- Switch music based on new map
+        self:switchMusic(targetMap)
+        
+        -- Recreate player collider in the new world
+        self.mapManager:recreatePlayerCollider(self.player)
+        
+        -- Position player at spawn location if provided
+        if spawnX and spawnY then
+            -- Spawn coordinates are for the player sprite, but collider needs offset adjustment
+            self.player.collider:setPosition(spawnX + 19, spawnY + 35)
+            self.player.x = spawnX
+            self.player.y = spawnY
+            
+            -- Track whisperMap entry point
+            local cleanTargetMap = targetMap:gsub('.*/', ''):gsub('%.lua$', '')
+            if cleanTargetMap == 'whisperMap' then
+                self.whisperMapEntryX = spawnX
+                self.whisperMapEntryY = spawnY
+                print("DEBUG: Entered whisperMap at " .. spawnX .. ", " .. spawnY)
+            end
+            
+            -- Set respawn position when entering frontyardMap
+            if targetMap == 'frontyardMap' or targetMap == 'maps/frontyardMap' or targetMap == 'maps/frontyardMap.lua' then
+                self.initialPlayerX = spawnX
+                self.initialPlayerY = spawnY
+            end
+            print(string.format("Player spawned at: x=%.2f, y=%.2f (window: %dx%d)", 
+                spawnX, spawnY, 
+                love.graphics.getWidth(), love.graphics.getHeight()))
+        else
+            -- No spawn specified, use first portal spawn or map default
+            local firstSpawnX, firstSpawnY = self.mapManager:getFirstSpawnPoint()
+            if firstSpawnX and firstSpawnY then
+                self.player.collider:setPosition(firstSpawnX + 19, firstSpawnY + 35)
+                self.player.x = firstSpawnX
+                self.player.y = firstSpawnY
+                
+                -- Track whisperMap entry point
+                local cleanTargetMap = targetMap:gsub('.*/', ''):gsub('%.lua$', '')
+                if cleanTargetMap == 'whisperMap' then
+                    self.whisperMapEntryX = firstSpawnX
+                    self.whisperMapEntryY = firstSpawnY
+                    print("DEBUG: Entered whisperMap at " .. firstSpawnX .. ", " .. firstSpawnY)
+                end
+            end
+        end
+        
+        -- Spawn enemies for the new map
+        self.enemyManager:spawnEnemiesForMap(targetMap, self.mapManager:getWorld(), self.mapManager.currentMapObject)
+        
+        -- Spawn NPCs for the new map
+        self.npcManager:spawnNPCsForMap(targetMap, self.mapManager:getWorld())
+        
+        -- Spawn items for the new map
+        self.itemManager:spawnItemsForMap(targetMap, self.mapManager:getWorld())
+        
+        -- Load signs for the new map
+        self.signageManager:loadSignsForMap(self.mapManager.currentMap, self.mapManager.currentMapObject)
+        
+        -- Load objective items for the new map
+        self.mapManager:loadObjectiveItems()
+        
+        -- Check if there's a pending objective dialogue to trigger
+        self.storyManager:checkPendingDialogue()
+        
+        -- Check for special map transitions that trigger objectives
+        local cleanTargetMap = targetMap:gsub('.*/', ''):gsub('%.lua$', '')
+        print("DEBUG: Map transition to: " .. cleanTargetMap .. " | Current objective: " .. tostring(self.storyManager.currentObjective))
+        
+        -- Trigger obj10 when entering intersectionMap (Town Square)
+        if cleanTargetMap:lower() == 'intersectionmap' then
+            print("DEBUG: Detected intersectionMap entry")
+            if self.storyManager.currentObjective == "obj9" then
+                -- Advance to obj10 (Talk to Mr. Andy)
+                table.insert(self.storyManager.completedObjectives, "obj9")
+                self.storyManager.currentObjective = "obj10"
+                print("DEBUG: Entered Town Square - Advanced to obj10")
+            else
+                print("DEBUG: Current objective is not obj9, it's: " .. tostring(self.storyManager.currentObjective))
+            end
+            
+            -- Check if returning after collecting 10 ashberries and scene13 not triggered
+            if not self.hasTriggeredScene13 and _G.inventory and (_G.inventory.ashberry or 0) >= 10 then
+                print("DEBUG: Triggering scene13 - Final stretch")
+                self.hasTriggeredScene13 = true
+                self.storyManager:playScene("scene13", function()
+                    print("DEBUG: scene13 completed, spawning route NPCs")
+                    -- After scene13, spawn dad and mistress NPCs
+                    self:spawnRouteNPCs()
+                end)
+            end
+        end
+        
+        -- Trigger scene9 dialogue when entering whisperMap (Whisper Willows)
+        if cleanTargetMap:lower() == 'whispermap' then
+            print("DEBUG: Detected whisperMap entry")
+            -- Check if scene9 hasn't been played yet
+            if not self.storyManager:isSceneCompleted("scene9") then
+                print("DEBUG: Triggering scene9 dialogue")
+                self.storyManager:playScene("scene9")
+            else
+                print("DEBUG: scene9 already completed")
+            end
+        end
+        
+        -- Trigger scene11 dialogue when entering ashMap with whisper weed collected
+        if cleanTargetMap:lower() == 'ashmap' then
+            print("DEBUG: Detected ashMap entry")
+            -- Check if player has whisper weed and scene11 hasn't been played yet
+            if _G.inventory and _G.inventory.whisperweed == true then
+                if not self.storyManager:isSceneCompleted("scene11") then
+                    print("DEBUG: Triggering scene11 dialogue")
+                    self.storyManager:playScene("scene11", function()
+                        -- After scene11 completes, advance to obj17 (Find the Ashroot Bulb)
+                        if self.storyManager.currentObjective == "obj16" then
+                            table.insert(self.storyManager.completedObjectives, "obj16")
+                            self.storyManager.currentObjective = "obj17"
+                            print("DEBUG: Advanced to obj17 - Find the Ashroot Bulb")
+                        end
+                    end)
+                else
+                    print("DEBUG: scene11 already completed")
+                end
+            else
+                print("DEBUG: Whisper weed not collected yet")
+            end
+        end
+        
+        -- Then fade out to reveal the new room
+        transition:fadeOut(0.5)
+        self.isTransitioning = false
+    end)
+end
+
 function Game:interact()
     -- Prevent interaction during transition
     if self.isTransitioning then return end
@@ -464,72 +824,13 @@ function Game:interact()
     local portal = self:checkPortalInteraction()
     
     if portal and portal.targetMap then
-        self.isTransitioning = true
-        local transition = getTransition()
-        -- Fade to black first, then load the map and fade out
-        transition:fadeIn(0.5, function()
-            -- Load the target map while screen is black
-            self.mapManager:loadMap(portal.targetMap)
-            
-            -- Switch music based on new map
-            self:switchMusic(portal.targetMap)
-            
-            -- Recreate player collider in the new world
-            self.mapManager:recreatePlayerCollider(self.player)
-            
-            -- Position player at spawn location if defined, otherwise at portal center
-            if portal.spawnX and portal.spawnY then
-                -- Spawn coordinates are for the player sprite, but collider needs offset adjustment
-                self.player.collider:setPosition(portal.spawnX + 19, portal.spawnY + 35)
-                self.player.x = portal.spawnX
-                self.player.y = portal.spawnY
-                
-                -- Track whisperMap entry point
-                local cleanTargetMap = portal.targetMap:gsub('.*/', ''):gsub('%.lua$', '')
-                if cleanTargetMap == 'whisperMap' then
-                    self.whisperMapEntryX = portal.spawnX
-                    self.whisperMapEntryY = portal.spawnY
-                    print("DEBUG: Entered whisperMap at " .. portal.spawnX .. ", " .. portal.spawnY)
-                end
-                
-                -- Set respawn position when entering frontyardMap (use the portal's spawn coords)
-                if portal.targetMap == 'frontyardMap' or portal.targetMap == 'maps/frontyardMap' or portal.targetMap == 'maps/frontyardMap.lua' then
-                    self.initialPlayerX = portal.spawnX
-                    self.initialPlayerY = portal.spawnY
-                end
-                print(string.format("Player spawned at: x=%.2f, y=%.2f (window: %dx%d)", 
-                    portal.spawnX, portal.spawnY, 
-                    love.graphics.getWidth(), love.graphics.getHeight()))
-            else
-                self.player.x = portal.x + portal.width / 2
-                self.player.y = portal.y + portal.height / 2
-                self.player.collider:setPosition(self.player.x + 19, self.player.y + 35)
-                print(string.format("Player spawned at portal center: x=%.2f, y=%.2f (window: %dx%d)", 
-                    self.player.x, self.player.y,
-                    love.graphics.getWidth(), love.graphics.getHeight()))
-            end
-            
-            -- Spawn enemies for the new map
-            self.enemyManager:spawnEnemiesForMap(portal.targetMap, self.mapManager:getWorld(), self.mapManager.currentMapObject)
-            
-            -- Spawn NPCs for the new map
-            self.npcManager:spawnNPCsForMap(portal.targetMap, self.mapManager:getWorld())
-            
-            -- Spawn items for the new map
-            self.itemManager:spawnItemsForMap(portal.targetMap, self.mapManager:getWorld())
-            
-            -- Then fade out to reveal the new room
-            transition:fadeOut(0.5)
-            self.isTransitioning = false
-        end)
+        self:handleMapTransition(portal.targetMap, portal.spawnX, portal.spawnY)
     end
 end
 
 function Game:triggerNPCDialogue(npc)
-    -- Switch to Dialogue state with NPC's dialogue
-    local Dialogue = require('src.states.Dialogue')
-    local dialogueState = Dialogue:new(self, npc.dialogueKey)
-    switchState(dialogueState)
+    -- Use StoryManager to handle NPC dialogue
+    self.storyManager:playNPCDialogue(npc.dialogueKey)
 end
 
 function Game:drawNPCInteractionPrompt(npc)
@@ -540,6 +841,41 @@ end
 function Game:drawMilkfishInteractionPrompt()
     love.graphics.setFont(self.uiFont)
     self:drawTextWithShadow("Press E to get milkfish", 50)
+end
+
+function Game:drawSignInteractionPrompt()
+    love.graphics.setFont(self.uiFont)
+    self:drawTextWithShadow("Press E to read sign", 50)
+end
+
+function Game:drawObjectiveItemPrompt(item)
+    love.graphics.setFont(self.uiFont)
+    
+    -- Normalize itemType to lowercase for case-insensitive matching
+    local normalizedItemType = item.itemType:lower()
+    
+    -- If item has targetMap, show "Press E to enter"
+    if item.targetMap then
+        local itemNames = {
+            duckroom = "Ducky's Room",
+            duckyroom = "Ducky's Room",
+            parentroom = "Parent's Room",
+            momroom = "Mom's Room"
+        }
+        local roomName = itemNames[normalizedItemType] or "Room"
+        self:drawTextWithShadow("Press E to enter " .. roomName, 50)
+    else
+        -- No targetMap, show interaction prompt
+        local itemNames = {
+            sink = "Check the Sink",
+            pictureframe = "Pick up Picture Frame",
+            food = "Get Food",
+            lake = "Go to the Lake",
+            journal = "Read the Journal"
+        }
+        local promptText = itemNames[normalizedItemType] or "Interact"
+        self:drawTextWithShadow("Press E to " .. promptText, 50)
+    end
 end
 
 function Game:findSafeRespawnPoint(baseX, baseY)
@@ -663,4 +999,185 @@ function Game:handlePlayerDeath(enemy)
     end, caughtScreenX, caughtScreenY)
 end
 
+function Game:spawnRouteNPCs()
+    if self.routeNPCsSpawned then return end
+    
+    print("DEBUG: Spawning dad and mistress NPCs at 2832, 1152")
+    
+    local world = self.mapManager:getWorld()
+    local NPC = require('src.entities.NPC')
+    
+    -- Spawn Dad NPC
+    -- NPC:new(x, y, spritePath, dialogueKey, name, movementType, moveDistance, moveSpeed, facingDirection, spriteFrame, world)
+    local dadNPC = NPC:new(
+        2832,
+        1152,
+        "assets/graphics/characters/dad-duckie-sprite-sheet.png",
+        "father_route",
+        "Father",
+        0, -- movementType: stationary
+        0, -- moveDistance
+        0, -- moveSpeed
+        "down", -- facingDirection
+        {1, 1}, -- spriteFrame
+        world -- world (last parameter)
+    )
+    table.insert(self.npcManager.npcs, dadNPC)
+    
+    -- Spawn Mistress NPC
+    local mistressNPC = NPC:new(
+        2832 + 60, -- Slightly offset from dad
+        1152,
+        "assets/graphics/characters/mistress-duckie-sprite-sheet.png",
+        "mistress_route",
+        "Mistress",
+        0, -- movementType: stationary
+        0, -- moveDistance
+        0, -- moveSpeed
+        "down", -- facingDirection
+        {1, 1}, -- spriteFrame
+        world -- world (last parameter)
+    )
+    table.insert(self.npcManager.npcs, mistressNPC)
+    
+    self.routeNPCsSpawned = true
+    
+    -- Trigger DialogueRoute1 scene1
+    print("DEBUG: Starting DialogueRoute1 scene1")
+    self:startDialogueRoute(DialogueRoute1, "scene1")
+end
+
+function Game:startDialogueRoute(routeModule, sceneKey)
+    print("DEBUG: Starting dialogue route for " .. sceneKey)
+    
+    self.storyManager.isShowingDialogue = true
+    
+    self.storyManager.dialogueManager:startDialogueRoute(
+        routeModule,
+        sceneKey,
+        function()
+            -- On dialogue complete
+            print("DEBUG: Dialogue route " .. sceneKey .. " completed")
+            self.storyManager.isShowingDialogue = false
+        end,
+        function(choice)
+            -- On choice made
+            print("DEBUG: Choice made: " .. choice)
+            self:handleRouteChoice(routeModule, sceneKey, choice)
+        end
+    )
+end
+
+function Game:handleRouteChoice(routeModule, sceneKey, choice)
+    -- Route 1, Scene 1: ((Go with Dad)) or ((Find the last Ingredient))
+    if routeModule == DialogueRoute1 and sceneKey == "scene1" then
+        if choice == 1 then
+            -- Go with Dad - Trigger Route1 Scene2, then Ending 1
+            print("DEBUG: Choice 1 - Go with Dad")
+            self:startDialogueRoute(DialogueRoute1, "scene2")
+            -- After scene2, show ending 1
+            self.storyManager.dialogueManager.onComplete = function()
+                self:showEnding(1, "ENDING 1: LEAVING HOME")
+            end
+        else
+            -- Find the last Ingredient - Trigger Route2 Scene1
+            print("DEBUG: Choice 2 - Find the last Ingredient")
+            self:startDialogueRoute(DialogueRoute2, "scene1")
+        end
+    -- Route 2, Scene 1: ((Trust Father's Words)) or ((Ignore Him))
+    elseif routeModule == DialogueRoute2 and sceneKey == "scene1" then
+        if choice == 1 then
+            -- Trust Father's Words - Trigger Route2 Scene2, continue to end
+            print("DEBUG: Choice 1 - Trust Father's Words")
+            self:startDialogueRoute(DialogueRoute2, "scene2")
+            -- Continue through all scenes in Route2
+            self:continueRoute2Journey()
+        else
+            -- Ignore Him - Trigger Route3 Scene1, continue to end
+            print("DEBUG: Choice 2 - Ignore Him")
+            self:startDialogueRoute(DialogueRoute3, "scene1")
+            -- Continue through all scenes in Route3
+            self:continueRoute3Journey()
+        end
+    end
+end
+
+function Game:continueRoute2Journey()
+    -- After scene2, continue the Route2 story sequence
+    -- scene3 -> breadScene -> scene4 -> scene5 -> scene6 -> scene7 (Ending 2)
+    local sceneSequence = {"scene3", "breadScene", "scene4", "scene5", "scene6", "scene7"}
+    local currentIndex = 1
+    
+    local function playNextScene()
+        if currentIndex <= #sceneSequence then
+            local nextScene = sceneSequence[currentIndex]
+            currentIndex = currentIndex + 1
+            
+            self.storyManager.dialogueManager:startDialogueRoute(
+                DialogueRoute2,
+                nextScene,
+                function()
+                    if nextScene == "scene7" then
+                        -- Show Ending 2
+                        self:showEnding(2, "ENDING 2: THE FALSE CURE")
+                    else
+                        playNextScene()
+                    end
+                end,
+                nil
+            )
+        end
+    end
+    
+    -- Start the sequence after scene2 completes
+    self.storyManager.dialogueManager.onComplete = playNextScene
+end
+
+function Game:continueRoute3Journey()
+    -- Continue through Route3 scenes: scene2 -> scene3 -> scene4 -> scene5 (Ending 3)
+    local sceneSequence = {"scene2", "scene3", "scene4", "scene5"}
+    local currentIndex = 1
+    
+    local function playNextScene()
+        if currentIndex <= #sceneSequence then
+            local nextScene = sceneSequence[currentIndex]
+            currentIndex = currentIndex + 1
+            
+            self.storyManager.dialogueManager:startDialogueRoute(
+                DialogueRoute3,
+                nextScene,
+                function()
+                    if nextScene == "scene5" then
+                        -- Show Ending 3
+                        self:showEnding(3, "ENDING 3: THE TRUTH TOO LATE")
+                    else
+                        playNextScene()
+                    end
+                end,
+                nil
+            )
+        end
+    end
+    
+    -- Start the sequence after scene1 completes
+    self.storyManager.dialogueManager.onComplete = playNextScene
+end
+
+function Game:showEnding(endingNumber, endingTitle)
+    print("DEBUG: Showing ending " .. endingNumber .. ": " .. endingTitle)
+    
+    -- Stop all music
+    if gameMusic then gameMusic:stop() end
+    if houseMusic then houseMusic:stop() end
+    if ashMapMusic then ashMapMusic:stop() end
+    if whisperMapMusic then whisperMapMusic:stop() end
+    
+    -- Create and show ending screen
+    self.endingScreen = EndingScreen:new()
+    self.endingScreen:enter(endingNumber, endingTitle)
+    self.showingEnding = true
+    self.storyManager.isShowingDialogue = false
+end
+
 return Game
+

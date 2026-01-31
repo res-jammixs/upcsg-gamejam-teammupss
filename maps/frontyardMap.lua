@@ -10,7 +10,7 @@ return {
   tilewidth = 16,
   tileheight = 16,
   nextlayerid = 17,
-  nextobjectid = 175,
+  nextobjectid = 177,
   properties = {},
   tilesets = {
     {
@@ -1132,8 +1132,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["spawnX"] = 540,
-            ["spawnY"] = 510,
+            ["objectiveItem"] = "inside",
             ["targetMap"] = "maps/zoomedHouseMap.lua"
           }
         },
@@ -1149,9 +1148,22 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["targetMap"] = "maps/intersectionMap.lua",
-            ["spawnX"] = 1540,
-            ["spawnY"] = 30,
+            ["targetMap"] = "maps/intersectionMap.lua"
+          }
+        },
+        {
+          id = 176,
+          name = "",
+          type = "",
+          shape = "rectangle",
+          x = 606.182,
+          y = 429.455,
+          width = 30.7273,
+          height = 30.5455,
+          rotation = 0,
+          visible = true,
+          properties = {
+            ["objectiveItem"] = "lake"
           }
         }
       }

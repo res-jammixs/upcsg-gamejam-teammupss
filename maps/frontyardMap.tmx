@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="64" height="48" tilewidth="16" tileheight="16" infinite="0" nextlayerid="17" nextobjectid="175">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="64" height="48" tilewidth="16" tileheight="16" infinite="0" nextlayerid="17" nextobjectid="177">
  <editorsettings>
   <export target="frontyardMap.lua" format="lua"/>
  </editorsettings>
@@ -669,12 +669,18 @@
  <objectgroup id="11" name="Portals" visible="0">
   <object id="1" x="498.25" y="324.25" width="11" height="11.75">
    <properties>
+    <property name="objectiveItem" value="inside"/>
     <property name="targetMap" value="maps/houseMap.lua"/>
    </properties>
   </object>
   <object id="170" x="473.5" y="756.75" width="60.25" height="10.25">
    <properties>
     <property name="targetMap" value="maps/intersectionMap.lua"/>
+   </properties>
+  </object>
+  <object id="176" x="606.182" y="429.455" width="30.7273" height="30.5455">
+   <properties>
+    <property name="objectiveItem" value="lake"/>
    </properties>
   </object>
  </objectgroup>

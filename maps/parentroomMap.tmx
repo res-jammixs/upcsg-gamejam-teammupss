@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="22" height="16" tilewidth="16" tileheight="16" infinite="0" nextlayerid="10" nextobjectid="10">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="22" height="16" tilewidth="16" tileheight="16" infinite="0" nextlayerid="10" nextobjectid="11">
  <editorsettings>
   <export target="parentroomMap.lua" format="lua"/>
  </editorsettings>
@@ -32,10 +32,15 @@
 126,126,126,126,126,126,126,126,126,126,126,126,126,126,126,126,126,126,126,126,126,126
 </data>
  </layer>
- <objectgroup id="9" name="Portals" visible="0">
+ <objectgroup id="9" name="Portals">
   <object id="8" x="131.091" y="160.727" width="10.1818" height="14.9091">
    <properties>
     <property name="targetMap" value="maps/zoomedHouseMap.lua"/>
+   </properties>
+  </object>
+  <object id="10" x="160.913" y="89.7391" width="14" height="22.4348">
+   <properties>
+    <property name="objectiveItem" value="mamaDuck"/>
    </properties>
   </object>
  </objectgroup>
@@ -87,8 +92,8 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,87,87,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,96,96,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,87,105,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,96,114,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,124,125,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,116,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,123,0,86,117,118,119,0,0,0,0,0,0,0,0,
@@ -139,7 +144,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="8" name="Walls">
+ <objectgroup id="8" name="Walls" visible="0">
   <object id="1" x="123.273" y="80.364" width="4" height="94.7273"/>
   <object id="2" x="141.455" y="160" width="87.0909" height="15.4545"/>
   <object id="3" x="130.364" y="162" width="10.7273" height="13.6364"/>
