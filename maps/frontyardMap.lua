@@ -1148,6 +1148,8 @@ return {
           rotation = 0,
           visible = true,
           properties = {
+            ["spawnX"] = 32 * 16 * 3,
+            ["spawnY"] = 0,
             ["targetMap"] = "maps/intersectionMap.lua"
           }
         },
